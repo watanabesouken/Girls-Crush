@@ -1,0 +1,486 @@
+{{ '//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js' |script_tag }}
+{{ 'api.jquery.js' | shopify_asset_url | script_tag }}
+{{ 'animate.min.css' | asset_url | stylesheet_tag }}
+{{ 'recentlyview.css' | asset_url | stylesheet_tag }}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<div class="main-recentviewsMain">
+  <div class="recentviewsMain" style="display:none;">
+    <div class="page-width">
+      <div id="recentviews1"></div>
+    </div>
+ </div>
+</div>
+
+<script type="text/javascript">
+  
+function setCookie(cname, cvalue, exdays) {
+  var d = new Date();
+  d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+  var expires = "expires=" + d.toUTCString();
+  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+}
+
+function getCookie(cname) {
+  var name = cname + "=";
+  var ca = document.cookie.split(';');
+  for(var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while(c.charAt(0) == ' ') {
+      c = c.substring(1);
+    }
+    if(c.indexOf(name) == 0) {
+      return c.substring(name.length, c.length);
+    }
+  }
+  return "";
+}
+
+function checkCookie() {
+  var user = getCookie("username");
+  if(user != "") {
+  } else {
+    user = prompt("Please enter your name:", "");
+    if(user != "" && user != null) {
+      {% if product %} setCookie("username", user, $slider_cookieexpire);{% endif %}
+    }
+  }
+}
+  
+var $slider_min_noofproduct,$autoplay,$autoplaySpeed,original_price,app,pLimit;
+$type = ''; $enable_by = '';
+  
+$.post('https://www.qetail.com/apps/qerecentlyview/Auth/getclass', 
+{
+	shop_url: "{{ shop.url }}"
+}).done(function(response) {
+	data = JSON.parse(response);
+	$slider_enableapp = data[0].slider_enableapp;
+	$slider_section_title = data[0].slider_section_title;
+	$slider_productpage = data[0].slider_productpage;
+	$slider_collectionpage = data[0].slider_collectionpage;
+	$slider_cartpage = data[0].slider_cartpage;
+	$slider_homepage = data[0].slider_homepage;
+	$slider_min_noofproduct = data[0].slider_noofproduct;
+	$slider_max_noofproduct = data[0].slider_max_noofproduct;
+	$slider_border_size = data[0].slider_border_size;
+	$slider_border_style = data[0].slider_border_style;
+	$slider_border_color = data[0].slider_border_color;
+	$slider_bg_color = data[0].slider_bg_color;
+	$slider_text_color = data[0].slider_text_color;
+	$slider_img_size = data[0].slider_img_size;
+	$slider_animation = data[0].slider_animation;
+	$slider_trigger = data[0].slider_trigger;
+	$dp = $slider_animation + ' animated';
+	$slider_type = data[0].slider_type;
+	$slider_autoslide = data[0].slider_autoslide;
+	$slider_cookieexpire = data[0].slider_cookieexpire;
+	$slider_button_bg_color = data[0].slider_button_bg_color;
+	$slider_button_text_color = data[0].slider_button_text_color;
+	$slider_button_text = data[0].slider_button_text;
+	$slider_discount_badge = data[0].slider_discount_badge;
+	$slider_option_image = data[0].slider_option_image;
+	$slider_enable_qty = data[0].slider_enable_qty;
+	$slider_enable_buynow = data[0].slider_enable_buynow;
+	$slider_salebadge_color = data[0].slider_salebadge_color;
+	$slider_product_title_color = data[0].slider_product_title_color;
+	$slider_price_color = data[0].slider_price_color;
+	pLimit = $slider_max_noofproduct;
+  
+  	if($slider_type == "vertical") { $slider_img_size = 'compact'; }
+  	if($slider_enable_qty == "on") { $type = "number"; } else { $type = "hidden"; }
+	if($slider_enable_buynow == "on") { $enable_by = "submit"; } 
+	else { $enable_by = "hidden";}
+
+	if($slider_autoslide == 'on') { $autoplay = true; $autoplaySpeed = 3000;}
+
+	if($slider_enableapp == 'on' && $slider_productpage == 'on') 
+  {
+		setInterval(function() { $('.recent_btn').toggleClass($dp)}, $slider_trigger);
+
+		if(getCookie("qe_recent_products") == "") 
+		{
+            {% if product %} 
+              if("{{product.handle}}" != "") 
+              {
+                  setCookie("qe_recent_products", "{{product.handle}}", $slider_cookieexpire);
+              }
+            {% endif %}     
+			var recentProducts = getCookie("qe_recent_products");
+		} 
+		else 
+		{
+			var recentProducts = getCookie("qe_recent_products");
+			var rproducts = recentProducts.split(",");
+			if(rproducts[0] == "{{product.handle}}") {} 
+			else
+			{
+				recentProducts = recentProducts + "," + "{{product.handle}}";
+			}
+
+			var rproducts = recentProducts.split(",");
+			var newrps = new Array();
+			var ti = 0;
+			for(i1 = 0; i1 < rproducts.length; i1++) 
+			{
+				if("{{product.handle}}" != rproducts[i1] && rproducts[i1] != "") 
+				{
+					newrps[ti] = rproducts[i1];
+					ti = parseInt(ti) + 1;
+				}
+			}
+			recentProducts = newrps.join(",");
+			recentProducts = "{{product.handle}}" + "," + recentProducts;
+			var reverseproducts = recentProducts.split(",");
+			var recentProducts2 = new Array();
+			for(ri = 0; ri < reverseproducts.length; ri++) 
+			{
+				recentProducts2[ri] = reverseproducts[ri];
+				if((parseInt(pLimit) - 1) == (ri)) 
+				{
+					break;
+				}
+			}
+			recentProducts = recentProducts2.join(",");
+			{% if product %} setCookie("qe_recent_products", recentProducts, $slider_cookieexpire);  {% endif %}
+		}
+
+		var str = '<div class="rv__row"><div class="rv__twelve"><h1 class="rv__center" style="color:#' + $slider_text_color + '">' + $slider_section_title +
+			'</h1></div><div class="clearAll"><i class="fa fa-trash" aria-hidden="true"></i> <span onclick="deletcookie_horizontal()">Clear All</span></div></div><div id="rv__recent_products" class="rv__grid" style="background:#' +
+			$slider_bg_color + ';color:#' + $slider_text_color + ';border-style:' + $slider_border_style + ';border-width:' + $slider_border_size + ';border-color:' +
+			$slider_border_color + '"><div class="rv__row  clearfix row_no_wrap pro_list"></div><div id="rv__spinner"></div></div>';
+
+		$("#recentviews1").html(str);
+	  
+	  {% if product %}pHandle = "{{product.handle}}"; {% endif %}
+
+		function recursionProduct(currentProducts, e, pPointer, pLimit, strProduct, countProduct) 
+		{
+			if(pPointer >= pLimit || e == '') 
+			{
+				return false;
+			} 
+			else 
+			{
+				pPointer += 1;
+				Shopify.getProduct(e, function(product) {
+				var img = product.featured_image;
+				var second_img = product.images[product.images.length - 1];
+				var imgs = img.split(".");
+				var ext = imgs[imgs.length - 1];
+				var original_price = product.price_min;
+				var compare_price = product.compare_at_price_min;
+				$slider_img_size = $slider_img_size.replace("px", "");
+				img = img.replace("." + ext, "_" + $slider_img_size + "." + ext);
+
+				strProduct += '<div class="rv__column rv__three rv__sm_twelve">';
+				strProduct += '<div class="rv__product_box" style="background:#' + $slider_bg_color + ';color:#' + $slider_text_color + ';">';
+				if(compare_price > original_price && $slider_discount_badge == "on") 
+				{
+					var getprice = (((compare_price - original_price) * 100) / compare_price).toFixed(0);
+					strProduct += '<span style="color:#' + $slider_salebadge_color + '"; class="bedge">' + getprice + '% OFF</span>';
+				}
+
+				strProduct += '<div class="rv__product_img">';
+				strProduct += '<div class="rv__img_wrap">';
+				strProduct += '<a  href="' + product.url + '" title="' + product.title + '">';
+				if($slider_option_image == 'single') 
+				{
+					strProduct += '<div class="productImg ' + $slider_img_size + '"><img src="' + img + '" class="rv__responsive ' + $slider_img_size + '"/></div>';
+				} 
+				else if($slider_option_image == 'multiple') 
+				{
+						strProduct += '<div class="carousel reveal">';
+						for(j = 0; j < product.images.length; j++) 
+						{
+							var img = product.images[j];
+							var imgs = img.split(".");
+							var ext = imgs[imgs.length - 1];
+							img = img.replace("." + ext, "_" + $slider_img_size + "." + ext);
+							strProduct += '<div ><div class="productImg ' + $slider_img_size + '"><img  class="rv__responsive ' + $slider_img_size + '" src="' + (img) +
+								'"/></div></div>';
+						}
+						strProduct += '</div>';
+					}
+
+					strProduct += '</a>';
+					strProduct += '<a href="' + product.url + '" title="' + product.title + '">';
+					strProduct += '<h2 style="color:#' + $slider_product_title_color + '"; class="product_title">' + product.title + '</h2>';
+					strProduct += '</a>';
+					var opt = '';
+
+					if(product.variants.length == 1) 
+					{
+						opt += '<input name="id" data-price="' + (product.variants[0].price) + '" value="' + product.variants[0].id + '" type="hidden">';
+					} 
+					else 
+					{
+						opt += '<select name="id" class="recentviewoptions">';
+						for(v = 0; v < product.variants.length; v++) {
+							opt += '<option data-price="' + (product.variants[v].price) + '" value="' + product.variants[v].id + '">' + product.variants[v].title + '</option>';
+						}
+						opt += '</select>';
+					}
+
+					strProduct += '<div class="pro-form">';
+					strProduct += '<div class="pro-form-in"><form method="post" action="/cart/add">' + opt + '<input min="1" type="' + $type +
+						'" id="quantity" name="quantity" value="1"/><div class="add-btns"><button type="submit" value="' + $slider_button_text + '"  title="' +
+						$slider_button_text + '" style="background:#' + $slider_button_bg_color + ' !important;color:#' + $slider_button_text_color +
+						' !important;" class="btn recent_btn qeaddcart"><i class="fa fa-shopping-cart" aria-hidden="true"></i></button> <button class="btn recent_btn qecheckout" type="' +
+						$enable_by + '" name="return_to" value="Buy Now" title="Buy Now"><i class="fa fa-money" aria-hidden="true"></i></button> </div></form> </div>';
+
+					strProduct += '</div>';
+					strProduct += '<div style="color:#' + $slider_price_color + '"; class="rv__price">' + Shopify.formatMoney(product.price, "{{ shop.money_format }}") +
+						'</div>';
+					strProduct += '</div></div></div></div>';
+					
+					countProduct = parseInt(countProduct) + 1;
+					if(countProduct == pLimit || currentProducts.length == countProduct) 
+					{
+						$('.recentviewsMain').show();
+						if($slider_type == "horizontal") 
+						{
+							//$("#rv__recent_products.rv__grid>.rv__row:last").append(strProduct);
+							$.getScript("https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.9.0/slick.min.js").done(function() 
+							{
+								$('#recentviews1 .pro_list').slick({
+									slidesToShow: $slider_min_noofproduct,
+									infinite: true,
+									autoplay: $autoplay,
+									autoplaySpeed: $autoplaySpeed,
+									responsive: [{
+										breakpoint: 1024,
+										settings: {
+											slidesToShow: 3,
+											slidesToScroll: 3,
+											infinite: true,
+											dots: true
+										}
+									}, {
+										breakpoint: 600,
+										settings: {
+											slidesToShow: 2,
+											slidesToScroll: 2
+										}
+									}, {
+										breakpoint: 737,
+										settings: {
+											slidesToShow: 1,
+											slidesToScroll: 1
+										}
+									}, {
+										breakpoint: 767,
+										settings: {
+											slidesToShow: 1,
+											slidesToScroll: 1
+										}
+									}, {
+										breakpoint: 480,
+										settings: {
+											slidesToShow: 1,
+											slidesToScroll: 1
+										}
+									}]
+								});
+								$('#recentviews1 .carousel').slick({
+									slidesToShow: 1,
+									infinite: true,
+									arrows: false,
+									autoplay: true,
+									autoplaySpeed: 2000,
+									focusOnSelect: true,
+									pauseOnHover: false,
+								});
+							});
+						} 
+						else if($slider_type == "vertical") 
+						{
+							if(currentProducts.length > 2)
+							{
+								var app = '<div  class="pro_list"></div>';
+							} 
+							else 
+							{
+								var app = '<div  class="pro_list height_auto"></div>';
+							}
+
+							$("#recentviews1").hide();
+
+							var appendcode = '<div class="resView"><button style="background:#' + $slider_button_bg_color + ' !important;color:#' + $slider_button_text_color +
+								' !important;" onclick="openForm()" class="recentview_view" ><i class="fa fa-eye" aria-hidden="true"></i>' + $slider_section_title +
+								'</button></div></div><div style="display:none;border-style:' + $slider_border_style + ';border-width:' + $slider_border_size + ';border-color:' +
+								$slider_border_color + '"; class="chat-popup" id="myForm">  ' + app + '     <div  class="form-container">  ' + '       <div style="background:#' +
+								$slider_button_bg_color + ' !important;color:#' + $slider_button_text_color +
+								' !important;" class="closeApp" onclick="closeForm()"><i class="fa fa-close"></i>' + $slider_section_title +
+								'</div><div class="clearAll"><i class="fa fa-trash" aria-hidden="true"></i> <span onclick="deletcookie()">Clear All</span></div>  ' +
+								'     </div>  ' + '  </div>  ';
+
+							$('body').prepend(appendcode);
+							$('#myForm .pro_list').append(strProduct);
+						}
+					}
+					return recursionProduct(currentProducts, currentProducts[pPointer], pPointer, pLimit, strProduct, countProduct);
+				});
+			}
+		}
+
+		var pPointer = 0;
+		jQuery(function($) 
+		{
+			setTimeout(function() 
+			{
+				var currentProducts = getCookie("qe_recent_products").split(",");
+				if(currentProducts.length > 0 || Array.isArray(currentProducts)) 
+				{
+					$('#_rvp').show()
+				}
+				$("#rv__spinner").hide();
+				if(currentProducts.length == 0) 
+				{
+					$("#recentviewsMain").hide();
+				}
+				else 
+				{
+					var countProduct = 0;
+					var strProduct = '';
+					recursionProduct(currentProducts, currentProducts[pPointer], pPointer, 7, strProduct, countProduct);
+				}
+			}, 850);
+		});
+	}
+});
+
+
+function openForm() 
+{
+	document.getElementById("myForm").style.display = "block";
+	$('.recentview_view').css("display", "none");
+	$('#myForm .carousel').slick({
+		slidesToShow: 1,
+		infinite: true,
+		arrows: false,
+		autoplay: true,
+		autoplaySpeed: 3000,
+		pauseOnHover: true,
+	});
+	$('#myForm .pro_list').slick({
+		slidesToShow: $slider_min_noofproduct,
+		infinite: true,
+		vertical: true,
+		verticalSwiping: true,
+		autoplay: $autoplay,
+		autoplaySpeed: $autoplaySpeed,
+		responsive: [{
+				breakpoint: 1024,
+				settings: {
+					slidesToShow: 2,
+					slidesToScroll: 2,
+					infinite: true,
+					dots: true
+				}
+			}, {
+				breakpoint: 600,
+				settings: {
+					slidesToShow: 2,
+					slidesToScroll: 2
+				}
+			}, {
+				breakpoint: 767,
+				settings: {
+					slidesToShow: 2,
+					slidesToScroll: 2
+				}
+			}, {
+				breakpoint: 480,
+				settings: {
+					slidesToShow: 1,
+					slidesToScroll: 1
+				}
+			}]
+	});
+}
+
+function closeForm() 
+{
+	document.getElementById("myForm").style.display = "none";
+	$('.recentview_view').css("display", "");
+	$('#myForm .pro_list').slick('unslick');
+	$('#myForm .carousel').slick('unslick');
+}
+
+function createCookie(name, value, days) 
+{
+	if(days) {
+		var date = new Date();
+		date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+		var expires = "; expires=" + date.toGMTString();
+	} else var expires = "";
+	document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+function deletcookie() 
+{
+	console.log("qe_recent_products")
+	createCookie("qe_recent_products", "", -1);
+	closeForm();
+	$('.resView').hide();
+}
+
+function deletcookie_horizontal() 
+{
+	createCookie("qe_recent_products", "", -1);
+	$('#recentviews1').hide();
+}
+
+$(document).on("click", ".qeaddcart", function(event) 
+{
+	event.preventDefault();
+	var thisobj = $(this);
+	var value = $(this).parents("form").find('select[name="id"]').val();
+	var price = $(this).parents("form").find('option[value="' + value + '"]').attr("data-price");
+	if(price == undefined || price == '') {
+		price = $(this).parents("form").find('input[name="id"]').attr("data-price");
+	}
+	var qty = $(this).parents("form").find('input[name="quantity"]').val();
+	var totalprice = qty * price;
+	$.ajax({
+		type: "POST",
+		url: "https://www.qetail.com/apps/qerecentlyview/Auth/update_addcart",
+		data: {
+			shop_url: "{{ shop.url }}",
+			countprice: totalprice / 100
+		},
+		success: function(result) {
+			thisobj.parents("form").submit();
+		}
+	});
+});
+
+$(document).on("click", ".qecheckout", function(event) 
+{
+	event.preventDefault();
+	var thisobj = $(this);
+	var value = $(this).parents("form").find('select[name="id"]').val();
+	var price = $(this).parents("form").find('option[value="' + value + '"]').attr("data-price");
+	if(price == undefined || price == '') {
+		price = $(this).parents("form").find('input[name="id"]').attr("data-price");
+	}
+	var qty = $(this).parents("form").find('input[name="quantity"]').val();
+	var totalprice = qty * price;
+	$.ajax({
+		type: "POST",
+		url: "https://www.qetail.com/apps/qerecentlyview/Auth/update_checkout",
+		data: {
+			shop_url: "{{ shop.url }}",
+			countprice: totalprice / 100
+		},
+		success: function(result) {
+			jQuery.post('/cart/add.js', thisobj.parents("form").serialize()).
+			always(function(data) {
+				window.location.href = '/checkout';
+			});
+		}
+	});
+});
+</script>

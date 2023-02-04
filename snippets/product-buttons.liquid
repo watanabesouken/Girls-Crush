@@ -1,0 +1,144 @@
+{%- liquid
+
+  if product_type == 'product' and show_quantity
+    assign price_width = ''
+    assign button_width = 'span-7 sm-span-5 auto'
+  elsif product_type == 'product' and show_quantity == false
+    assign price_width = ''
+    assign button_width = 'span-10 sm-span-10 auto'
+  elsif show_quantity
+    assign price_width = 'span-2 sm-span-5 auto'
+    assign button_width = 'span-5 sm-span-10 auto'
+  elsif show_quantity == false
+    assign price_width = 'span-3 sm-span-3 auto'
+    assign button_width = 'span-7 sm-span-7 auto'
+  endif
+
+-%}
+
+<div class="product-form__buttons type--{{ product_type }} qty--{{ show_quantity }} product__add-container mt4 {% if coming_soon %} mb4{% endif %}" data-product-buttons {{ block.shopify_attributes }}>
+  {%- if coming_soon -%}
+    <div class="product__add-inner-container mt4{% unless settings.product_show_payment_button %} mb4{% endunless %}">
+      {%- if show_quantity -%}
+        <div class="product-form__add-to-cart--qty product__quantity m0 span-3 sm-span-5 auto">
+          <a class="product__quantity-down downer js-qty-down vib-center no-js-hidden" href="{{ product.url }}" tabindex="0" aria-label="Decrease">
+            {% render 'snip-icons',
+               wrapper: '.product__quantity',
+               type: 'apollo',
+               icon: 'minus',
+               size: '10px',
+               fill: 'var(--text-color)',
+               hover: 'var(--text-color)' %}
+          </a>
+          <label for="{{ section.id }}-productQty-{{ product.id }}">
+            <input id="{{ section.id }}-productQty-{{ product.id }}"
+            min="1"
+            data-limit="{% if current_variant.inventory_management == 'shopify' %}{% unless current_variant.inventory_policy == 'continue' %}{{ current_variant.inventory_quantity }}{% endunless %}{% endif %}"
+            type="text" name="quantity"
+            class="product__quantity-input vib-center"
+            value="1" />
+          <span class="visually-hidden">{{ 'products.product.quantity' | t }}</span>
+          </label>
+          <a class="product__quantity-up js-qty-up up vib-center no-js-hidden" href="{{ product.url }}" tabindex="0" aria-label="Increase">
+            {% render 'snip-icons',
+               wrapper: '.product__quantity',
+               type: 'apollo',
+               icon: 'plus',
+               size: '10px',
+               fill: 'var(--text-color)',
+               hover: 'var(--text-color)' %}
+          </a>
+        </div>
+      {%- endif -%}
+
+      {%- unless product_type == 'product' -%}
+        <div class="product-form__add-to-cart--price {{ price_width }} v-center a-center" data-product-price>
+          {% render 'snip-product-price', variant: current_variant, product: product %}
+        </div>
+      {%- endunless -%}
+
+      <button
+       type="submit"
+       name="add"
+       data-variant-id="{{ current_variant.id }}"
+       class="product-form__add-to-cart--text {{ button_width }} m0 js-notify-form-trigger">
+           カートに追加する
+      </button>
+    </div>
+
+    <div class="product-form__notify-form js-notify-form">
+      {%- render 'notify-form', product: product, customer: customer -%}
+    </div>
+  {%- else -%}
+    {%- assign product_form_id = 'product-form-buttons-' | append: section.id -%}
+    {% form 'product', product,
+       id: product_form_id,
+       class: "product__form-buttons js-prod-form-submit",
+       data-product-id: product.id %}
+
+
+      <input id="formVariantId" name="id" type="hidden" value="{{ product.selected_or_first_available_variant.id }}">
+      <div class="note note-success mt3 js-added-msg a-center mb4" style="display: none">
+        <b>{{ 'products.product.added' | t }}</b>&nbsp;&nbsp;&nbsp;<a class="underline" href="{{ routes.cart_url }}">{{ 'products.product.view_cart' | t }}</a> {{ 'products.product.or' | t }} <a class="underline" href="{{ routes.all_products_collection_url }}">{{ 'products.product.continue' | t }}</a>.
+      </div>
+      <div class="note note-error js-error-msg a-center mb4 lh2" style="display: none">
+        <b>{{ 'cart.general.cart_error' | t }}</b>&nbsp;&nbsp;&nbsp;{{ 'cart.general.update_qty_error' | t }}
+      </div>
+
+      <div class="product__add-inner-container mt4{% unless settings.product_show_payment_button %} mb4{% endunless %}">
+        {%- if show_quantity -%}
+          <div class="product-form__add-to-cart--qty product__quantity m0 span-3 sm-span-5 auto">
+            <a class="product__quantity-down downer js-qty-down vib-center no-js-hidden" href="{{ product.url }}" tabindex="0" aria-label="Decrease">
+              {% render 'snip-icons',
+                 wrapper: '.product__quantity',
+                 type: 'apollo',
+                 icon: 'minus',
+                 size: '10px',
+                 fill: 'var(--text-color)',
+                 hover: 'var(--text-color)' %}
+            </a>
+          <label for="{{ section.id }}-productQty-{{ product.id }}">
+            <input id="{{ section.id }}-productQty-{{ product.id }}"
+            min="1"
+            data-limit="{% if current_variant.inventory_management == 'shopify' %}{% unless current_variant.inventory_policy == 'continue' %}{{ current_variant.inventory_quantity }}{% endunless %}{% endif %}"
+            type="text" name="quantity"
+            class="product__quantity-input vib-center"
+            value="1" />
+            <span class="visually-hidden">{{ 'products.product.quantity' | t }}</span>
+          </label>
+            <a class="product__quantity-up js-qty-up up vib-center no-js-hidden" href="{{ product.url }}" tabindex="0" aria-label="Increase">
+              {% render 'snip-icons',
+                 wrapper: '.product__quantity',
+                 type: 'apollo',
+                 icon: 'plus',
+                 size: '10px',
+                 fill: 'var(--text-color)',
+                 hover: 'var(--text-color)' %}
+            </a>
+          </div>
+        {%- endif -%}
+
+        {%- unless product_type == 'product' -%}
+          <div class="product-form__add-to-cart--price {{ price_width }} v-center a-center" data-product-price>
+            {% render 'snip-product-price', variant: current_variant, product: product %}
+          </div>
+        {%- endunless -%}
+
+        <button
+         type="submit"
+         name="add"
+         data-variant-id="{{ current_variant.id }}"
+         class="product-form__add-to-cart--text {{ button_width }} ajax-submit js-ajax-submit add-item add m0"
+         {% unless current_variant.available %}disabled="disabled"{% endunless %}>
+           {{ call_to_action }}
+        </button>
+      </div>
+
+      {% if settings.product_show_payment_button  %}
+        <div class="product-additional-buttons mb2 mt2">
+          {{ form | payment_button }}
+        </div>
+      {% endif %}
+    {%- endform -%}
+  {%- endif -%}
+</div>

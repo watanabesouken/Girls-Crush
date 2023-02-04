@@ -1,0 +1,69 @@
+{% if shop.customer_accounts_enabled %}
+  {% if customer %}
+    <li class="header__cart-links--account {{ classes }} sm-hide">
+      <a class="px1 py4 {% if use_icons %}mb0 inline-block{% endif %} color--header-text" aria-label="{{'general.header.account' | t }}" href="{{ routes.account_url }}">
+        <span class="navigation__top-level--hover">{{ 'general.header.account' | t }}</span>
+      </a>
+    </li>
+    <li class="header__cart-links--logout {{ classes }} sm-hide">
+        <a class="px1 py4 {% if use_icons %}mb0 inline-block{% endif %} color--header-text" href="{{ routes.account_logout_url }}" aria-label="{{ 'general.header.logout' | t }}">
+          <span class="navigation__top-level--hover sm-hide">{{ 'general.header.logout' | t }}</span>
+        </a>
+    </li>
+  {% else %}
+    <li class="header__cart-links--login {{ classes }} sm-hide" aria-label="{{ 'general.header.login' | t }}">
+      <a class="px1 py4 {% if use_icons %}mb0 inline-block{% endif %} color--header-text" href="{{ routes.account_login_url }}">
+        <span class="navigation__top-level--hover">{{ 'general.header.login' | t }}</span>
+      </a>
+    </li>
+  {% endif %}
+{% endif %}
+<li class="header__cart-links--cart cart-link relative {{ classes }}">
+  {% if settings.cart_type == 'page_only' %}
+    <a class="px1 py4 {% if use_icons %}mb0 inline-block relative lh0{% else %}cart_no--icon{% endif %} color--header-text" aria-label="{{'general.header.cart' | t }}" href="{{ routes.cart_url }}">
+      {%- if use_icons -%}
+        {% render 'snip-icons',
+           wrapper: '.header__cart-links--cart',
+           type: 'theme',
+           icon: 'bag',
+           size: '20px',
+           classes: 'header__cart-links--cart-icon mr0',
+           fill: fill_color,
+           hover: hover_color %}
+           <span class="header__cart-links--cart-icon-count js-cart-count">{{ cart.item_count }}</span>
+      {%- else -%}
+        <span class="navigation__top-level--hover">{{ 'general.header.bag' | t }}<span>&nbsp;(<span class="js-cart-count">{{ cart.item_count }}</span>)</span></span>
+      {%- endif -%}
+    </a>
+  {%- else -%}
+    {%- liquid
+      if settings.cart_type == 'drawer'
+        assign cart_classes = 'js-slideout-open'
+        assign cart_settings = 'data-wau-slideout-target="ajax-cart" data-slideout-direction="right"'
+      elsif settings.cart_type == 'modal_cart'
+        assign cart_classes = 'js-modal-open'
+        assign cart_settings = 'data-wau-modal-target="ajax-cart"'
+      endif
+    -%}
+    <div class="slideout__trigger--open">
+      <a class="js-mini-cart-trigger {{ cart_classes }} px1 py4 {% if use_icons %}mb0 inline-block relative lh0{% else %}cart_no--icon{% endif %} color--header-text"
+        {{ cart_settings }}
+        aria-label="Open cart"
+        href="{{ routes.cart_url }}">
+          {%- if use_icons -%}
+            {% render 'snip-icons',
+               wrapper: '.header__cart-links--cart',
+               type: 'theme',
+               icon: 'bag',
+               size: '20px',
+               classes: 'mr0',
+               fill: fill_color,
+               hover: hover_color %}
+               <span class="header__cart-links--cart-icon-count js-cart-count">{{ cart.item_count }}</span>
+          {%- else -%}
+            <span class="navigation__top-level--hover">{{ 'general.header.bag' | t }}<span>&nbsp;(<span class="js-cart-count">{{ cart.item_count }}</span>)</span></span>
+          {%- endif -%}
+      </a>
+    </div>
+  {%- endif -%}
+</li>

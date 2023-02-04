@@ -1,0 +1,1 @@
+{"sections":{"banner":{"type":"template-header","settings":{"full_width":true,"scale":1,"banner_height":600,"float_header":false,"heading":"404ページ","subheading":"<p>お客様がアクセスしたページは存在しません。<\/p>","alignment":"a-center","collection_image":false,"show_countdown":false}},"main":{"type":"main-404","settings":{}}},"order":["banner","main"]}

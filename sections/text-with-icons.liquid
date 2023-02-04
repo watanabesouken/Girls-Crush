@@ -1,0 +1,398 @@
+{% comment %} Text With Icons Logic {% endcomment %}
+{%- liquid
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+  if settings.section_title_align == 'left'
+    assign heading_align = 'a-left'
+  else
+    assign heading_align = 'a-center'
+  endif
+
+  case section.settings.text_align
+  when 'left'
+    assign text_align =  'a-left'
+  when 'center'
+    assign text_align =  'a-center'
+  endcase
+
+  case section.blocks.size
+    when 0
+    when 1
+      assign block_width = 'span-12 auto'
+    when 2
+      assign block_width = 'span-6 auto'
+    when 3
+      assign block_width = 'span-4 auto'
+    when 4
+      assign block_width = 'span-3 auto'
+    when 5
+      assign block_width = 'span-2 auto'
+    when 6
+      assign block_width = 'span-2 auto'
+  endcase
+
+  assign sm_render = '100vw'
+  assign md_render = 'calc(100vw / ' | append: section.blocks.size | append: ')'
+  assign lg_render = 'calc(1600px / ' | append: section.blocks.size | append: ')'
+
+  if section.settings.color_scheme == 'none'
+    assign text_color = 'var(--text-color)'
+    assign bg_color = 'var(--background)'
+    assign hover_color = 'var(--text-color-light)'
+  else
+    assign text_color = 'var(--scheme-' | append: section.settings.color_scheme | append: '-text)'
+    assign bg_color = 'var(--scheme-' | append: section.settings.color_scheme | append: '-bg)'
+    assign hover_color = 'var(--scheme-' | append: section.settings.color_scheme | append: '-hover)'
+  endif
+-%}
+
+{% comment %} Text With Icons Template {% endcomment %}
+<div
+  class="section-txt-icons text-icons-{{ section.id }} global__section {{ section_padding }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="text-with-icons"
+  data-section-loaded="false">
+
+  <div class="section-txt-icons__outer-wrapper">
+    <div class="section-txt-icons__inner-wrapper grid__wrapper py9 cg9 sm-cg0 narrow">
+      {% render 'snip-headings', align: heading_align, classes: 'section-txt-icons__section-heading pb5', grid: 'span-12', heading: section.settings.title %}
+
+      {% for block in section.blocks %}
+        <article class="section-txt-icons__item text-promo-{{ block.id }} {{ block_width }} {{ text_align }} animate--text delay--{{ forloop.index0 }}" {{ block.shopify_attributes }}>
+          {% if block.settings.link != blank %}<a href="{{ block.settings.link }}">{% endif %}
+            <div class="section-txt-icons__image mb4">
+              {%- liquid
+
+                assign has_image = false
+                assign has_link = false
+                assign has_text = false
+
+                if block.settings.text != blank
+                  assign text = block.settings.text | escape
+                  assign has_text = true
+                endif
+
+                if block.settings.image != blank
+                  assign img_url = block.settings.image | img_url: '80x'
+                  assign has_image = true
+                endif
+
+                if block.settings.link != blank
+                  assign has_link = true
+                  assign link = block.settings.link
+                endif
+
+              -%}
+              {% unless has_image %}
+                <div class="section-txt-icons__text-icon--icon lh0">
+                  {% render 'snip-icons',
+                     wrapper: '.product-form__text-icon',
+                     type: 'theme',
+                     icon: block.settings.icon,
+                     size: '42px',
+                     classes: 'absolute-center',
+                     fill: bg_color,
+                     hover: bg_color %}
+                </div>
+              {% endunless %}
+              {% if has_image %}
+                <div class="section-txt-icons__text-icon--image lh0">
+                  <img src="{{ img_url }}" alt="{{ block.settings.image.alt }}">
+                </div>
+              {% endif %}
+            </div>
+          {% if block.settings.link != blank %}</a>{% endif %}
+
+            <div class="section-txt-icons__content mb2">
+              {% if block.settings.title != blank %}
+                <p class="section-txt-icons__block-heading mb2 h5">{{ block.settings.title }}</p>
+              {% endif %}
+              {% if block.settings.subheading != blank %}
+                <div class="section-txt-icons__block-subheading mb2">
+                  {{ block.settings.subheading }}
+                </div>
+              {% endif %}
+            </div>
+        </article>
+      {% endfor %}
+
+      {% if section.blocks.size == 0 %}
+        {% render 'onboard-no-blocks' %}
+      {% endif %}
+    </div>
+  </div>
+  <style >
+    .section-txt-icons__text-icon--icon {
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      background-color: {{ text_color }};
+      position: relative;
+    }
+    .section-txt-icons__text-icon--icon svg {
+      max-width: 50px;
+    }
+    .section-txt-icons__text-icon--image {
+      max-width: 80px;
+    }
+    .section-txt-icons__item.a-center .section-txt-icons__text-icon--icon,
+    .section-txt-icons__item.a-center .section-txt-icons__text-icon--image {
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .text-icons-{{ section.id }},
+    .text-icons-{{ section.id }} h2,
+    .text-icons-{{ section.id }} p,
+    .text-icons-{{ section.id }} a {
+      color: {{ text_color }} !important;
+    }
+    .text-icons-{{ section.id }} a:hover {
+      color: {{ hover_color }} !important;
+    }
+    .text-icons-{{ section.id }} .section-txt-icons__outer-wrapper {
+      background-color: {{ bg_color }} !important;
+    }
+  </style>
+</div>
+
+{% schema %}
+{
+  "name": "Text with icons",
+  "tag": "section",
+  "class": "dynamic-section",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Text with Icons"
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Text alignment",
+      "default": "center",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        }
+      ]
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default":"1",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "section_padding",
+      "label": "Section spacing",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "both"
+    }
+  ],
+	"blocks": [
+    {
+      "type": "text_block",
+      "name": "Column",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Choose an icon",
+          "options": [
+            {
+              "value": "bag",
+              "label": "Bag"
+            },
+            {
+              "value": "cart",
+              "label": "Cart"
+            },
+            {
+              "value": "checkmark",
+              "label": "Checkmark"
+            },
+            {
+              "value": "clock",
+              "label": "Clock"
+            },
+            {
+              "value": "credit_card",
+              "label": "Credit card"
+            },
+            {
+              "value": "envelope",
+              "label": "Envelope"
+            },
+            {
+              "value": "gift",
+              "label": "Gift"
+            },
+            {
+              "value": "globe",
+              "label": "Globe"
+            },
+            {
+              "value": "heart",
+              "label": "Heart"
+            },
+            {
+              "value": "home",
+              "label": "Home"
+            },
+            {
+              "value": "info",
+              "label": "Info"
+            },
+            {
+              "value": "chat",
+              "label": "Chat"
+            },
+            {
+              "value": "phone",
+              "label": "Phone"
+            },
+            {
+              "value": "location",
+              "label": "Location"
+            },
+            {
+              "value": "return",
+              "label": "Return"
+            },
+            {
+              "value": "ruler",
+              "label": "Ruler"
+            },
+            {
+              "value": "sale_tag",
+              "label": "Sale tag"
+            },
+            {
+              "value": "search",
+              "label": "Search"
+            },
+            {
+              "value": "lock",
+              "label": "Secure"
+            },
+            {
+              "value": "truck",
+              "label": "Shipping"
+            },
+            {
+              "value": "smile",
+              "label": "Smile emoji"
+            },
+            {
+              "value": "star",
+              "label": "Star"
+            },
+            {
+              "value": "verified",
+              "label": "Verified"
+            }
+          ],
+          "default": "chat"
+        },
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Or add a custom image",
+          "info": "100px x 100px recommended"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link",
+          "info": "Optional"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Heading"
+        },
+        {
+          "type": "richtext",
+          "id": "subheading",
+          "label": "Text",
+          "default": "<p>Pair icon with text on store details.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Text with icons",
+      "blocks": [
+        {
+          "type": "text_block"
+        },
+        {
+          "type": "text_block"
+        },
+        {
+          "type": "text_block"
+        }
+      ]
+    }
+  ],
+  "templates": ["404", "article", "blog", "cart", "collection", "list-collections", "index", "page", "product", "search"]
+}
+{% endschema %}

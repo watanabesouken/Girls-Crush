@@ -1,0 +1,586 @@
+{%- liquid
+
+  if section.settings.mobile_nav_scheme == 'none'
+    assign text_color = 'var(--text-color)'
+    assign bg_color = 'var(--background)'
+    assign hover_color = 'var(--text-color-light)'
+    assign border_color = 'var(--dotted-color)'
+  else
+    assign text_color = 'var(--scheme-' | append: section.settings.mobile_nav_scheme | append: '-text)'
+    assign bg_color = 'var(--scheme-' | append: section.settings.mobile_nav_scheme | append: '-bg)'
+    assign hover_color = 'var(--scheme-' | append: section.settings.mobile_nav_scheme | append: '-hover)'
+    assign border_color = text_color
+  endif
+
+  assign has_nav = false
+  assign nav_count = 0
+
+   for block in section.blocks
+    if block.type == 'navigation'
+      if block.settings.main_nav != blank
+        assign has_nav = true
+        assign nav_count = nav_count | plus: 1
+      endif
+    endif
+   endfor
+
+-%}
+
+{% comment %} Mobile Navigation Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-mobile-navigation.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-mobile-navigation.css' | asset_url }}"></noscript>
+<link rel="preload" href="{{ 'component-accordions.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'component-accordions.css' | asset_url }}"></noscript>
+<link rel="preload" href="{{ 'component-slideouts.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'component-slideouts.css' | asset_url }}"></noscript>
+<link rel="preload" href="{{ 'component-modals.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'component-modals.css' | asset_url }}"></noscript>
+<script src="{{ 'section-mobile-navigation.js' | asset_url }}" defer></script>
+
+{% comment %} Mobile Navigation Template {% endcomment %}
+<div
+  class="mobile-nav__wrapper no-section-animation"
+  data-section-id="{{ section.id }}"
+  data-section-type="mobile-navigation">
+
+  <div class="mobile-nav__mobile-close grid__wrapper narrow pt6">
+    <div class="slideout__trigger--close span-12 auto a-right">
+      <button class="slideout__trigger-mobile-menu js-slideout-close btn-as-link" data-slideout-direction="left" aria-label="Close navigation" tabindex="0" type="button" name="button">
+        <span class="vib-center sm">{{ 'general.header.close' | t }}</span>
+        {% render 'snip-icons',
+           wrapper: '.mobile-nav__mobile-header',
+           type: 'theme',
+           icon: 'close',
+           size: '12px',
+           classes: 'vib-center',
+           fill: text_color,
+           hover: hover_color %}
+      </button>
+    </div>
+  </div>
+
+  <div class="mobile-nav__menu-blocks pt6 grid__wrapper narrow">
+    {%- if has_nav -%}
+      <div class="mobile-nav__mobile-menu-wrapper span-12 auto relative">
+        <div class="mobile-nav__menu-toggle" {% if nav_count < 2 %}style="display: none;"{% endif %}>
+          {%- for block in section.blocks  -%}
+            {%- if block.type == 'navigation' -%}
+              {% assign menu = linklists[block.settings.main_nav] %}
+              <button class="menu-toggle btn-as-link {% if forloop.first %}active--menu{% endif %} js-menu-toggle" data-toggle-menu="{{ menu.handle }}" aria-label="Show menu {{ menu.title | escape }} " {{ block.shopify_attributes }}>
+                {{ menu.title }}
+              </button>
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+        <div class="mobile-nav__mobile-menus js-menu-outer">
+          {% for block in section.blocks %}
+            {%- if block.type != 'navigation' -%}
+              {%- continue -%}
+            {%- else -%}
+              {%- liquid
+                assign menu = linklists[block.settings.main_nav]
+                assign first_level_links = false
+                assign second_level_links = false
+                assign third_level_links = false
+
+                if menu.levels == 1
+                  assign first_level_links = true
+                elsif menu.levels == 2
+                  assign first_level_links = true
+                  assign second_level_links = true
+                elsif menu.levels == 3
+                  assign first_level_links = true
+                  assign second_level_links = true
+                  assign third_level_links = true
+                endif
+
+              -%}
+              {%- if menu -%}
+                <div class="mobile-nav__menu-block {% if forloop.first or nav_count < 2 %}active--menu{% endif %} js-mobile-menu" data-menu-handle="{{ menu.handle }}" {{ block.shopify_attributes }}>
+                  {%- if first_level_links -%}
+                    <ul class="slide-nav__first-level--wrapper nav-slide--active" data-link-parent="main">
+                      {%- for link in menu.links -%}
+                        {% if link.links != blank %}
+                          <li class="slide-nav__first-level--item">
+                            <a class="slide-nav__first-level--link mb0 vib-center" href="{{ link.url }}">{{ link.title | escape }}</a>
+                            <button class="slide-nav__first-level--button dropdown-arrow slide-nav__button vib-center" data-link-trigger="{{ link.handle }}" aria-label="{{ link.title | escape }}">
+                              {% render 'snip-icons',
+                                 wrapper: '.slide-nav__button',
+                                 type: 'theme',
+                                 icon: 'bold-carrot-right',
+                                 size: '12px',
+                                 classes: 'mobile_nav--arrow inactive-arrow mt0 mr0 mb0 ml0',
+                                 fill: text_color,
+                                 hover: hover_color %}
+                            </button>
+                          </li>
+                        {% else %}
+                          <li class="slide-nav__first-level--item">
+                            <a class="slide-nav__first-level--link mb0 vib-center" href="{{ link.url }}">{{ link.title | escape }}</a>
+                          </li>
+                        {% endif %}
+                      {%- endfor -%}
+                    </ul>
+                  {%- endif -%}
+                  {%- if second_level_links -%}
+                    {%- for link in menu.links -%}
+                      {% if link.links != blank %}
+                        <ul class="slide-nav__second-level--wrapper" data-link-parent="{{ link.handle }}">
+                          <li class="slide-nav__second-level--item">
+                            <button class="slide-nav__parent--button dropdown-arrow slide-nav__button vib-center" data-link-trigger="main" aria-label="{{ link.title | escape }}">
+                              {% render 'snip-icons',
+                                 wrapper: '.slide-nav__button',
+                                 type: 'theme',
+                                 icon: 'bold-carrot-right',
+                                 size: '12px',
+                                 classes: 'mobile_nav--arrow inactive-arrow mt0 mr0 mb0 ml0',
+                                 fill: text_color,
+                                 hover: hover_color %}
+                            </button>
+                            <a class="slide-nav__parent--link mb0 vib-center" href="{{ link.url }}">{{ link.title | escape }}</a>
+                          </li>
+                          {% for sub_link in link.links %}
+                            {% if sub_link.links != blank %}
+                              <li class="slide-nav__second-level--item">
+                                <a class="slide-nav__second-level--link mb0 vib-center" href="{{ sub_link.url }}">{{ sub_link.title | escape }}</a>
+                                <button class="slide-nav__second-level--button dropdown-arrow vib-center slide-nav__button" data-link-trigger="{{ sub_link.handle }}" aria-label="{{ sub_link.title | escape }}">
+                                  {% render 'snip-icons',
+                                     wrapper: '.slide-nav__button',
+                                     type: 'theme',
+                                     icon: 'bold-carrot-right',
+                                     size: '12px',
+                                     classes: 'mobile_nav--arrow inactive-arrow mt0 mr0 mb0 ml0',
+                                     fill: text_color,
+                                     hover: hover_color %}
+                                </button>
+                              </li>
+                            {% else %}
+                              <li class="slide-nav__second-level--item">
+                                <a class="slide-nav__second-level--link mb0" href="{{ sub_link.url }}">{{ sub_link.title | escape }}</a>
+                              </li>
+                            {% endif %}
+                          {% endfor %}
+                        </ul>
+                      {% endif %}
+                    {%- endfor -%}
+                  {%- endif -%}
+                  {%- if third_level_links -%}
+                    {%- for link in menu.links -%}
+                      {% for sub_link in link.links %}
+                        {% if sub_link.links != blank %}
+                          <ul class="slide-nav__third-level--wrapper" data-link-parent="{{ sub_link.handle }}">
+                            <li class="slide-nav__second-level--item">
+                              <button class="slide-nav__parent--button dropdown-arrow slide-nav__button vib-center" data-link-trigger="{{ link.handle }}" aria-label="{{ sub_link.title | escape }}">
+                                {% render 'snip-icons',
+                                   wrapper: '.slide-nav__button',
+                                   type: 'theme',
+                                   icon: 'bold-carrot-right',
+                                   size: '12px',
+                                   classes: 'mobile_nav--arrow inactive-arrow mt0 mr0 mb0 ml0',
+                                   fill: text_color,
+                                   hover: hover_color %}
+                              </button>
+                              <a class="slide-nav__parent--link mb0 vib-center" href="{{ sub_link.url }}">{{ sub_link.title | escape }}</a>
+                            </li>
+                            {% for sub_sub_link in sub_link.links %}
+                              <li class="slide-nav__third-level--item">
+                                <a class="slide-nav__third-level--link mb0" href="{{ sub_sub_link.url }}">{{ sub_sub_link.title }}</a>
+                              </li>
+                            {% endfor %}
+
+                          </ul>
+                        {% endif %}
+                      {% endfor %}
+                    {%- endfor -%}
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            {%- endif -%}
+          {% endfor %}
+        </div>
+      </div>
+    {%- endif -%}
+
+
+    <div class="mobile-nav__menu-blocks--lower span-12 auto grid__wrapper edge pt6 pb6 rg7">
+      {% for block in section.blocks %}
+        {% case block.type %}
+          {% when 'search_box' %}
+            <div class="mobile-menu__block mobile-menu__search span-12 auto" {{ block.shopify_attributes }}>
+              <form action="/search" method="get">
+                <input type="text" name="q" class="search__input" placeholder="検索ワード" />
+                {% if settings.search_show_products_only %}
+                  <input type="hidden" name="type" value="product">
+                {% endif %}
+              </form>
+              <style>
+                .mobile-menu__search input,
+                .mobile-menu__search input:focus {
+                  border: 1px solid {{ text_color }} !important;
+                  color: {{ text_color }} !important;
+                }
+                .mobile-menu__search input::placeholder {
+                  color: {{ text_color }} !important;
+                }
+              </style>
+            </div>
+          {% when 'social_icons' %}
+            <div class="mobile-menu__block mobile-menu__social {{ block.settings.alignment }} span-12 auto" {{ block.shopify_attributes }}>
+              {% render 'snip-social-icons' %}
+              <style>
+                .mobile-menu__social #social-icons svg .hover-fill  {
+                  fill: {{ text_color }};
+                }
+                .mobile-menu__social #social-icons svg:hover .hover-fill  {
+                  fill: {{ hover_color }};
+                }
+              </style>
+            </div>
+          {% when 'featured_image' %}
+            <div class="mobile-menu__block mobile-menu__featured-image span-12 auto" {{ block.shopify_attributes }}>
+              {% if block.settings.featured_image_link %}<a href="{{ block.settings.featured_image_link }}">{% endif %}
+              {% render 'helper-image',
+                 type: block.settings.featured_image,
+                 sm_render: '400px'
+                 md_render: '600px',
+                 lg_render: '600px' %}
+              {% if block.settings.featured_image_link %}</a>{% endif %}
+            </div>
+          {% when 'featured_text' %}
+            <div class="mobile-menu__block mobile-menu__featured-text text-center span-12 auto" {{ block.shopify_attributes }}>
+              <div class="rte mb0 {{ block.settings.alignment }}">
+                {{ block.settings.featured_text }}
+              </div>
+            </div>
+          {% when 'featured_collection' %}
+            <link rel="preload" href="{{ 'component-product-grid.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+            <noscript><link rel="stylesheet" href="{{ 'component-product-grid.css' | asset_url }}"></noscript>
+            <div class="mobile-menu__block mobile-menu__featured-collection span-12 auto pb2 mb3" {{ block.shopify_attributes }}>
+              <div class="grid__wrapper edge">
+                <p class="featured_collection_block--title span-12 auto">{{ block.settings.title }}</p>
+              </div>
+              <div class="featured_collection_block--grid grid__wrapper edge cg6 rg0">
+                {% assign collection = collections[block.settings.collection] %}
+                {% if collection != blank %}
+                  {% for product in collection.products limit: 4 %}
+                    {% render 'product-loop-simple',
+                      carousel: false,
+                      collection: collection,
+                      product: product,
+                      product_info_align: settings.product_grid_alignment,
+                      grid_items: 4,
+                      items_per_row: 'span-3 sm-span-3 auto',
+                      featured_collection: true %}
+                  {% endfor %}
+                {% else %}
+                  {% for i in (1..4) %}
+                    {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+                    {% assign placeholder = 'product-' | append: current %}
+                      <article class="product-loop__item span-3 sm-span-3 auto relative {{ settings.image_ratio }} a-center">
+                        <a href="#">
+                          <div class="product-image relative sm-px0 sm-py0">
+                            <div class="product-loop__img-wrapper relative demo-1 color-1">
+                              {{ placeholder | placeholder_svg_tag: 'placeholder-svg' }}
+                            </div>
+                          </div>
+                          <div class="product-info mt1 pb1 px1 sm-px0 a-center">
+                            <small class="product-vendor block mb1">Product Vendor</small>
+                            <p class="product-title">Product Title</p>
+                            <p class="product-subtitle mb0">Product subtitle</p>
+                          </div>
+                          <div class="product-price py2 px2 sm-px0 a-center">
+                            $12.99
+                          </div>
+                        </a>
+                      </article>
+                  {% endfor %}
+                {% endif %}
+              </div>
+            </div>
+          {% when 'simple_links' %}
+            <div class="mobile-menu__block mobile-menu__simple-links span-12 auto" {{ block.shopify_attributes }}>
+              <ul class="border-top pt4 mb0">
+                {% for link in linklists[block.settings.simple_links].links %}
+                  <li class="simple-links__item">
+                    <a class="py2 inline-block mb0" href="{{ link.url }}">
+                      {{ link.title }}
+                    </a>
+                  </li>
+                {% endfor %}
+                {% if shop.customer_accounts_enabled and block.settings.customer_account_links %}
+                  {% if customer  %}
+                    <li class="simple-links__item">
+                      <a class="py2 inline-block mb0" href="{{ routes.account_url }}">
+                        {{ 'general.header.account' | t }}
+                      </a>
+                    </li>
+                    <li class="simple-links__item">
+                      <a class="py2 inline-block mb0" href="{{ routes.account_logout_url }}">
+                        {{ 'general.header.logout' | t }}
+                      </a>
+                    </li>
+                  {% else %}
+                    <li class="simple-links__item">
+                      <a class="py2 inline-block mb0" href="{{ routes.account_login_url }}">
+                        {{ 'general.header.login' | t }}
+                      </a>
+                    </li>
+                  {% endif %}
+                {% endif %}
+                {%- if block.settings.cart_link -%}
+                  <li class="simple-links__item">
+                    <a class="py2 inline-block mb0 mobile-menu__cart-icon" href="{{ routes.cart_url }}">
+                      カート
+                      (<span class="mobile-menu__cart-count js-cart-count">{{ cart.item_count }}</span>)
+                    </a>
+                  </li>
+                {%- endif -%}
+              </ul>
+            </div>
+        {% endcase %}
+      {% endfor %}
+    </div>
+
+  </div>
+  <style>
+    #slideout-mobile-navigation,
+    .mobile-nav__wrapper,
+    .mobile-nav__menu-block,
+    .slide-nav__second-level--wrapper,
+    .slide-nav__third-level--wrapper,
+    .mobile-nav__wrapper .product-loop__item .product-loop__info-wrapper {
+      background: {{ bg_color }};
+    }
+    .mobile-nav__wrapper,
+    .mobile-nav__wrapper span,
+    .mobile-nav__wrapper small,
+    .mobile-nav__wrapper p,
+    .mobile-nav__wrapper p a,
+    .mobile-nav__wrapper li a,
+    .mobile-nav__wrapper .product-price,
+    .slide-nav__first-level--link,
+    .slide-nav__parent--link,
+    .slide-nav__second-level--link,
+    .slide-nav__third-level--link,
+    .mobile-nav__wrapper .product-loop__item a.product-loop__cta {
+      color: {{ text_color }};
+    }
+    .mobile-nav__menu-toggle {
+      border-color: {{ text_color }};
+    }
+    .slide-nav__first-level--wrapper,
+    .mobile-menu__simple-links ul,
+    .slide-nav__first-level--item,
+    .slide-nav__second-level--item,
+    .slide-nav__third-level--item {
+      border-color: {{ border_color }};
+    }
+    .mobile-nav__menu-toggle button.menu-toggle {
+      background-color: {{ bg_color }} !important;
+      color: {{ text_color }} !important;
+    }
+    .mobile-nav__menu-toggle button.menu-toggle.active--menu,
+    .mobile-nav__menu-toggle button.menu-toggle:hover {
+      background-color: {{ text_color }} !important;
+      color: {{ bg_color }} !important;
+    }
+    .slide-nav__first-level--link:hover,
+    .slide-nav__parent--link:hover,
+    .slide-nav__second-level--link:hover,
+    .slide-nav__third-level--link:hover,
+    .mobile-nav__wrapper p a:hover,
+    .mobile-nav__wrapper li a:hover {
+      color: {{ hover_color }};
+    }
+    .mobile-nav__wrapper svg:hover .hover-fill {
+      fill: {{ hover_color }};
+    }
+  </style>
+</div>
+
+
+
+{% schema %}
+  {
+    "name": "Mobile navigation",
+    "settings": [
+      {
+        "type": "select",
+        "id": "mobile_nav_scheme",
+        "label": "Color scheme",
+        "default":"none",
+        "options": [
+          {
+            "value": "none",
+            "label": "None"
+          },
+          {
+            "value": "1",
+            "label": "1"
+          },
+          {
+            "value": "2",
+            "label": "2"
+          },
+          {
+            "value": "3",
+            "label": "3"
+          }
+        ]
+      }
+	  ],
+    "blocks": [
+      {
+        "type": "simple_links",
+        "name": "Simple links",
+        "settings":[
+          {
+            "type": "link_list",
+            "id": "simple_links",
+            "label": "Choose menu"
+          },
+          {
+            "type": "checkbox",
+            "id": "customer_account_links",
+            "label": "Show customer account links",
+            "info": "Customer accounts must be enabled to see."
+          },
+          {
+            "type": "checkbox",
+            "id": "cart_link",
+            "label": "Show cart link"
+          }
+        ],
+        "limit": 1
+      },
+      {
+        "type": "featured_collection",
+        "name": "Featured collection",
+        "settings":[
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Featured collection"
+          },
+          {
+            "id": "collection",
+            "type": "collection",
+            "label": "Collection"
+          }
+        ],
+        "limit": 1
+      },
+      {
+        "type": "search_box",
+        "name": "Search box",
+        "settings":[],
+        "limit": 1
+      },
+      {
+        "type": "navigation",
+        "name": "Navigation",
+        "settings":
+        [
+          {
+            "type": "link_list",
+            "id": "main_nav",
+            "label": "Choose menu",
+            "default": "main-menu",
+            "info": "It is best practice to select the same menu used in the Header. [Learn More](https://developers.google.com/search/mobile-sites/mobile-first-indexing)"
+          }
+        ],
+        "limit": 2
+      },
+      {
+        "type": "featured_image",
+        "name": "Featured image",
+        "settings":
+        [
+          {
+            "type": "image_picker",
+            "id": "featured_image",
+            "label": "Choose featured image",
+            "info": "400px x 300px recommended"
+          },
+          {
+            "type": "url",
+            "id": "featured_image_link",
+            "label": "Featured image link"
+          }
+        ],
+        "limit": 1
+      },
+      {
+        "type": "social_icons",
+        "name": "Social icons",
+        "settings":
+        [
+          {
+            "type": "select",
+            "id": "alignment",
+            "label": "Alignment",
+            "default": "a-left",
+            "options": [
+              {
+                "value": "a-center",
+                "label": "Center"
+              },
+              {
+                "value": "a-left",
+                "label": "Left"
+              }
+            ]
+          }
+        ],
+        "limit": 1
+      },
+      {
+        "type": "featured_text",
+        "name": "Featured text",
+        "settings":
+        [
+          {
+            "type": "richtext",
+            "id": "featured_text",
+            "label": "Text",
+            "default": "<p><b>Featured Text</b></p><p><em>A great place to share about a sale!</em></p>"
+          },
+          {
+            "type": "select",
+            "id": "alignment",
+            "label": "Alignment",
+            "default": "a-left",
+            "options": [
+              {
+                "value": "a-center",
+                "label": "Center"
+              },
+              {
+                "value": "a-left",
+                "label": "Left"
+              }
+            ]
+          }
+        ],
+        "limit": 1
+      }
+    ],
+    "default": {
+      "blocks": [
+        {
+          "type": "navigation"
+        },
+        {
+          "type": "navigation"
+        },
+        {
+          "type": "featured_collection"
+        },
+        {
+          "type": "simple_links"
+        }
+      ]
+    }
+  }
+{% endschema %}

@@ -1,0 +1,70 @@
+{%- liquid
+
+  assign form_id = 'product-notify-' | append: product.id
+
+-%}
+
+ {% form 'contact', class: "grid__wrapper edge rg0 cg0 js-no-validate js-notify-contact-form", id: product.id %}
+  {%- liquid
+
+    if form.posted_successfully?
+     assign style = 'display: block;'
+    else
+      assign style = 'display: none;'
+    endif
+
+  -%}
+  <div class="notify-form__inner-wrapper border span-12 auto grid__wrapper cg0 rg0 js-notify-form-wrap py3" style="{{ style }}">
+    {%- if form.posted_successfully? -%}
+     <script type="text/javascript">
+      if ( sessionStorage.getItem('prev_url') !== null ) {
+        window.location.href = sessionStorage.getItem('prev_url');
+      }
+     </script>
+    {%- else -%}
+      <div class="span-12 auto notify-form__subscribe-wrapper">
+         {% if customer %}
+            <label class="notify-form--label span-12 auto a-center h4" for="contact[email]">{{ 'general.sections.countdown.customer_name_html' | t: customer: customer.first_name }}</label>
+          {% else %}
+            <label class="notify-form--label span-12 auto a-center h4" for="contact[email]">{{ 'general.sections.countdown.notification_label' | t }}</label>
+          {% endif %}
+
+        <div class="span-12 auto border-bottom mb4">
+          {% assign msg_title = product.title | remove: '"' %}
+          <input type="hidden" name="contact[product]" value="{{ product.title | escape }}">
+          {%- if product.selected_or_first_available_variant.sku != blank -%}
+            <input type="hidden" name="contact[product_sku]" value="{{ product.selected_or_first_available_variant.sku }}">
+          {%- endif -%}
+          <input type="hidden" id="message_body" name="contact[body]" value="{{ 'general.sections.countdown.notfication_msg' | t: msg_title: msg_title }}" />
+
+          {% if customer %}
+            <input class="notify-form--input inline-block w70 a-left v-center" required type="email" name="contact[email]" id="contact[email]" value="{{ customer.email }}" placeholder="{{ customer.email }}"/>
+          {% else %}
+            <input class="notify-form--input product-form__notify-form inline-block w70 a-left v-center" required type="email" name="contact[email]" id="contact[email]" placeholder="{{ 'general.newsletter_form.email_placeholder' | t }}"/>
+          {% endif %}
+          <input class="notify-form--btn button js-notify-submit inline-block w30 a-right v-center" data-product-id="{{ product.id }}" type="submit" value="{{ 'general.sections.countdown.notification_submit' | t }}">
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+  <div class="errors note note-error mb3 inline-block js-form-error span-12 auto py4 px4 mt4 a-left" style="display: none;">
+    <div class="inline-block v-center w10">
+      {% render 'snip-icons',
+         wrapper: '.errors.note',
+         type: 'apollo',
+         icon: 'error',
+         size: '20px',
+         classes: 'mr3',
+         fill: 'var(--error-msg-dark)',
+         hover: 'var(--error-msg-dark)' %}
+    </div>
+    <p class="inline-block mb0">{{ 'general.section.countdown.notification_error' | t }}</p>
+  </div>
+  <div class="notify-form__success-wrapper js-notify-success border span-12 auto py4 px4 mt4 a-center" style="display: none;">
+    {% if customer %}
+      <label class="notify-form--label span-12 auto a-center h4" for="contact[email]">{{ 'general.sections.countdown.customer_name_success_html' | t: customer: customer.first_name }}</label>
+    {% else %}
+      <label class="notify-form--label span-12 auto a-center h4" for="contact[email]">{{ 'general.sections.countdown.notification_label_success' | t }}</label>
+    {% endif %}
+  </div>
+{% endform %}

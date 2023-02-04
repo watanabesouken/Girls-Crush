@@ -1,0 +1,61 @@
+<article
+  class="product-loop__item {{ carousel_slide }} {% unless carousel %}{{ items_per_row }} {{ mobile_items_per_row }}{% endunless %} relative product-loop__item--{{ settings.image_ratio }}">
+
+  <div class="product-image relative">
+    <div class="product-loop__img-wrapper relative">
+       <div class="demo-1 color-2 box-ratio" style="padding-bottom: 100%;">
+         {{ placeholder | placeholder_svg_tag: 'placeholder-svg' }}
+       </div>
+    </div>
+  </div>
+
+  {%- liquid
+    if mobile_items_per_row == 'sm-span-6'
+      assign padding = 'pt4 pb6 px4 sm-pt2 sm-pb2 sm-px2'
+    else
+      assign padding = 'pt4 pb6 px4'
+    endif
+  -%}
+  <div class="product-loop__info-wrapper {{ padding }} {{ product_info_align }}">
+    {% if settings.product_grid_vendor %}
+      <p class="product-loop__vendor block mb0 sm-tpr-hide">VENDOR</p>
+    {% endif %}
+    {%- if settings.show_rating -%}
+      <div class="product__section--rating-wrapper" {{ block.shopify_attributes }}>
+        {% liquid
+         assign rating_decimal = 0
+         assign decimal = 3 | modulo: 1
+         if decimal >= 0.3 and decimal <= 0.7
+          assign rating_decimal = 0.5
+        elsif decimal > 0.7
+          assign rating_decimal = 1
+         endif
+        %}
+        <div class="product__section-rating" role="img" aria-label="{{ 'accessibility.star_reviews_info' | t: rating_value: 3, rating_max: 5 }}">
+          <span aria-hidden="true" class="product__section-rating-star color-icon" style="--rating: {{ 3 | floor }}; --rating-max: {{ 5 }}; --rating-decimal: {{ rating_decimal }};">
+          </span>
+        </div>
+        <p class="product__section-rating-text caption">
+          <span aria-hidden="true">3 / 5</span>
+        </p>
+        <p class="product__section-rating-count caption">
+          <span aria-hidden="true">(4)</span>
+          <span class="visually-hidden">4 {{ "accessibility.total_reviews" | t }}</span>
+        </p>
+      </div>
+    {%- endif -%}
+    <p class="product-loop__title">Product Title</p>
+    {%- if settings.product_grid_description -%}
+      <p class="product-loop__description mb0 sm-tpr-hide">{{ 'The first thirteen words of your product description will show if setting is applied.' | truncatewords: 11 }}</p>
+    {%- endif -%}
+  </div>
+
+  <div class="product-loop__info_bottom-wrapper">
+    <div class="product-loop__price px2 a-center">
+      <span class="product-loop__price--sale inline-block">
+        {{ '1000' | money }}
+      </span>
+    </div>
+    <a class="product-loop__cta inline-block py3 px2 a-center mb0" href="{{ product.url }}">カートに追加</a>
+  </div>
+</article>

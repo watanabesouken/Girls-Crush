@@ -1,0 +1,366 @@
+{% comment %} Gallery Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-image-gallery.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-image-gallery.css' | asset_url }}"></noscript>
+
+{% comment %} Gallery Logic {% endcomment %}
+{%- liquid
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+  if settings.section_title_align == 'left'
+    assign heading_align = 'a-left'
+  else
+    assign heading_align = 'a-center'
+  endif
+-%}
+
+{% comment %} Gallery Template {% endcomment %}
+<div
+  class="section-gallery gallery-{{ section.id }} global__section {{ section_padding }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="image-gallery"
+  data-section-loaded="false">
+  <div class="grid__wrapper">
+    {% render 'snip-headings', align: heading_align, classes: 'section-gallery__section-heading', grid: 'span-12 auto', heading: section.settings.title %}
+  </div>
+  <div class="section-gallery__container">
+    {% for block in section.blocks %}
+      {% case block.type %}
+        {% when 'image' %}
+          {%- liquid
+
+            case block.settings.image_width
+            when '25'
+              assign md_render = 'calc(100vw / 4)'
+              assign lg_render = 'calc(1600px / 4)'
+              assign image_width = 'one-quarter'
+            when '33'
+              assign md_render = 'calc(100vw / 3)'
+              assign lg_render = 'calc(1600px / 3)'
+              assign image_width = 'one-third'
+            when '50'
+              assign md_render = 'calc(100vw / 2)'
+              assign lg_render = 'calc(1600px / 2)'
+              assign image_width = 'one-half'
+            when '66'
+              assign md_render = 'calc(100vw * 0.6667)'
+              assign lg_render = 'calc(1600px * 0.6667)'
+              assign image_width = 'two-thirds'
+            when '75'
+              assign md_render = 'calc(100vw * 0.75)'
+              assign lg_render = 'calc(1600px * 0.75)'
+              assign image_width = 'three-quarters'
+            when '100'
+              assign md_render = '100vw'
+              assign lg_render = '100vw'
+              assign image_width = 'one-whole'
+            endcase
+          -%}
+
+          <div class="section-gallery__item-wrapper promo-{{ block.id }} section-gallery__item-wrapper--{{ image_width }}" {{ block.shopify_attributes }}>
+            <div class="section-gallery__item-inner relative">
+              {% if block.settings.link != blank %}<a class="section-gallery__item-link" href="{{ block.settings.link }}">{% endif %}
+                {% if block.settings.image != blank %}
+                  {% render 'helper-image',
+                     type: block.settings.image,
+                     sm_render: '300px',
+                     md_render: md_render,
+                     lg_render: lg_render %}
+                {% else %}
+                  <div class="onboard demo-1 color-2">
+                    {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+                  </div>
+                {% endif %}
+                {%- if block.settings.overlay_color != 'rgba(0,0,0,0)' -%}
+                  <div class="section-gallery__item-overlay"></div>
+                {%- endif -%}
+                <div class="section-gallery__caption a-center">
+                  {% if block.settings.title != blank %}
+                    <h3 class="section-gallery__block-heading animate--text delay--{{ forloop.index0 }}">{{ block.settings.title | escape }}</h3>
+                  {% endif %}
+                  {% if block.settings.subheading_text != blank %}
+                    <p class="section-gallery__block-subheading mb1 animate--text delay--{{ forloop.index0 | plus: 1 }}">{{ block.settings.subheading_text | escape }}</p>
+                  {% endif %}
+                  {% if block.settings.link != blank and block.settings.link_text != blank %}
+                    <a class="section-gallery__block-link button btn-outlined mt2 mb1 animate--text delay--{{ forloop.index0 | plus: 2 }}" href="{{ block.settings.link }}">{{ block.settings.link_text }}</a>
+                  {% endif %}
+                </div>
+              {% if block.settings.link != blank %}</a>{% endif %}
+            </div>
+            <style>
+              .promo-{{ block.id }} .section-gallery__block-heading,
+              .promo-{{ block.id }} .section-gallery__block-subheading {
+                color: {{ block.settings.text_color }};
+              }
+              .promo-{{ block.id }} .section-gallery__block-link {
+                color: {{ block.settings.text_color }};
+                border-color: {{ block.settings.text_color }};
+                color: {{ block.settings.text_color }};
+              }
+              {%- if block.settings.overlay_color != 'rgba(0,0,0,0)' -%}
+                .promo-{{ block.id }}.section-gallery__item-wrapper:hover .section-gallery__item-overlay {
+                  box-shadow: inset 0 0 0 2000px {{ block.settings.overlay_color | color_modify: 'alpha', 0.30 }};
+                }
+                @media (max-width: 767px) {
+                  .promo-{{ block.id }}.section-gallery__item-wrapper .section-gallery__item-overlay {
+                    box-shadow: inset 0 0 0 2000px {{ block.settings.overlay_color | color_modify: 'alpha', 0.30 }};
+                  }
+                }
+              {%- endif -%}
+            </style>
+          </div>
+        {% when 'row_break' %}
+         <div class="clear"></div>
+     {% endcase %}
+    {% endfor %}
+
+    {% if section.blocks.size == 0 %}
+      {% render 'onboard-no-blocks' %}
+    {% endif %}
+  </div>
+
+  <div class="clear"></div>
+
+<style>
+  {% if section.settings.image_padding == 'padding' %}
+    .gallery-{{ section.id }} .section-gallery__container {
+      margin-top: -10px;
+      margin-bottom: -10px;
+    }
+    .gallery-{{ section.id }} .section-gallery__item-wrapper {
+      padding: 10px !important;
+    }
+  {% endif %}
+  {% if section.settings.full_width %}
+    .gallery-{{ section.id }} .section-gallery__container {
+      width: 102.4%;
+      margin-left: -20px;
+    }
+    @media (max-width: 980px) {
+      .gallery-{{ section.id }} .section-gallery__container {
+        width: 105.5%;
+        margin-left: -10px;
+      }
+    }
+  {% else %}
+    .gallery-{{ section.id }} .section-gallery__container {
+      width: 100%;
+      padding-left: 3%;
+      padding-right: 3%;
+      margin: 0 auto !important;
+    }
+  {% endif %}
+
+  .gallery-{{ section.id }} .section-gallery__block-heading {
+    font-size: {{ section.settings.heading_size }}px;
+    line-height: 1;
+  }
+  .gallery-{{ section.id }} .section-gallery__block-subheading {
+    font-size: {{ section.settings.subheading_size }}px;
+  }
+
+  @media (max-width: 767px) {
+    .gallery-{{ section.id }} .section-gallery__block-heading {
+      font-size: calc({{ section.settings.heading_size }}px - ({{ section.settings.heading_size }}px * 0.15));
+    }
+    .gallery-{{ section.id }} .section-gallery__block-subheading {
+      font-size: calc({{ section.settings.subheading_size }}px - ({{ section.settings.subheading_size }}px * 0.15));
+    }
+  }
+</style>
+</div>
+
+{% schema %}
+  {
+    "name": "Image gallery",
+    "tag": "section",
+	  "max_blocks": 12,
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "full_width",
+        "label": "Enable full width",
+        "default": false
+      },
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "default": "Image gallery"
+      },
+      {
+        "type": "range",
+        "id": "heading_size",
+        "min": 12,
+        "max": 48,
+        "step": 1,
+        "unit": "px",
+        "label": "Heading size",
+        "default": 24
+      },
+      {
+        "type": "range",
+        "id": "subheading_size",
+        "min": 12,
+        "max": 32,
+        "step": 1,
+        "unit": "px",
+        "label": "Subheading size",
+        "default": 18
+      },
+      {
+        "type": "select",
+        "id": "image_padding",
+        "label": "Choose Style",
+        "default": "padding",
+        "options": [
+         {
+             "value": "padding",
+             "label": "Space around images"
+          },
+          {
+             "value": "no-padding",
+             "label": "Images touching"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "section_padding",
+        "label": "Section spacing",
+        "options": [
+          {
+            "value": "top",
+            "label": "Top"
+          },
+          {
+            "value": "bottom",
+            "label": "Bottom"
+          },
+          {
+            "value": "both",
+            "label": "Both"
+          },
+          {
+            "value": "none",
+            "label": "None"
+          }
+        ],
+        "default": "both"
+      }
+    ],
+  	"blocks": [
+      {
+        "type": "image",
+        "name": "Image",
+        "settings": [
+          {
+            "type": "image_picker",
+            "id": "image",
+            "label": "Image"
+          },
+          {
+            "type": "select",
+            "id": "image_width",
+            "label": "Container width",
+            "default": "33",
+            "options": [
+             {
+                 "value":"25",
+                 "label":"25%"
+              },
+              {
+                 "value":"33",
+                 "label":"33%"
+              },
+              {
+                 "value":"50",
+                 "label":"50%"
+              },
+              {
+                 "value":"66",
+                 "label":"66%"
+              },
+              {
+                 "value":"75",
+                 "label":"75%"
+              },
+              {
+                 "value":"100",
+                 "label":"100%"
+              }
+            ]
+          },
+          {
+            "type": "header",
+            "content": "Caption"
+          },
+          {
+            "type": "text",
+            "id": "title",
+            "label": "Heading",
+            "default": "Heading"
+          },
+          {
+            "type": "text",
+            "id": "subheading_text",
+            "label": "Subheading",
+            "default": "Subheading"
+          },
+          {
+            "type": "text",
+            "id": "link_text",
+            "label": "Link text",
+            "default": "Shop collection"
+          },
+          {
+            "type": "url",
+            "id": "link",
+            "label": "Link",
+            "info": "Optional"
+          },
+          {
+            "type": "color",
+            "id": "text_color",
+            "label": "Text",
+            "default": "#fff"
+          },
+          {
+            "type": "color",
+            "id": "overlay_color",
+            "label": "Overlay",
+            "default": "#000"
+          }
+        ]
+      },
+      {
+        "type": "row_break",
+        "name": "Row Break",
+        "settings": []
+      }
+    ],
+    "presets": [
+      {
+        "name": "Image gallery",
+        "blocks": [
+          {
+            "type": "image"
+          },
+          {
+            "type": "image"
+          },
+          {
+            "type": "image"
+          }
+        ]
+      }
+    ],
+    "templates": ["404", "article", "blog", "cart", "collection", "list-collections", "index", "page", "product", "search"]
+  }
+{% endschema %}

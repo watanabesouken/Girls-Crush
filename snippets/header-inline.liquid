@@ -1,0 +1,61 @@
+{% capture nav_logo %}
+  <article class="header-inline__logo-wrapper {{ logo_width }} auto {{ nav_align }}">
+    <div class="site-logo header__logo-wrapper relative lh0 {{ logo_align }}">
+      {% if section.settings.logo != blank %}
+        <a class="header__img-logo inline-block lh0 mb0 shrink-wrap" href="{{ routes.root_url }}"><img src="{{ section.settings.logo | img_url: '800x' }}" loading="lazy" alt="{{ shop.name }}"></a>
+      {% else %}
+        <a class="header__text-logo inline-block v-center m0 color--header-text" href="{{ routes.root_url }}">{{ shop.name }}</a>
+      {% endif %}
+    </div>
+  </article>
+{% endcapture %}
+
+{% capture nav_full %}
+  <article class="header-inline__nav-wrapper {{ nav_width }} {{ nav_align }} no-js-show"{%- if nav_style_drawer -%} style="display: none;" {%- endif -%}>
+    <div class="navigation" role="navigation">
+      {% render 'header-drop-navigation' %}
+    </div>
+  </article>
+{% endcapture %}
+
+{% capture nav_drawer %}
+  <article class="header-inline__nav-wrapper {{ nav_width }} {{ nav_align }} no-js-hidden">
+    <div class="slideout__trigger--open text-left js-header-mobile-nav">
+      <button class="slideout__trigger-mobile-menu js-slideout-open btn-as-link color--header-text" data-wau-slideout-target="mobile-navigation" data-slideout-direction="left" aria-label="Open navigation" tabindex="0" type="button" name="button">
+        {% render 'snip-icons',
+           wrapper: '.section-header__mobile',
+           type: 'theme',
+           icon: 'menu-bars',
+           size: '14px',
+           classes: 'mt0 mr2 mb0 ml0 vib-center',
+           fill: 'var(--header-text)',
+           hover: 'var(--header-hover)' %}
+           <span class="vib-center">{{ 'general.header.menu' | t }}</span>
+      </button>
+    </div>
+  </article>
+{% endcapture %}
+
+{% capture cart_links %}
+  <article class="header-inline__cart-links-wrapper {{ cartlink_width }} v-center a-right">
+    <ul class="header__cart-links__wrapper cart-link-topbar-false inline-block mb0">
+      {% render 'header-cart-links', classes: "m0 p0", use_icons: use_icons, fill_color: 'var(--header-text)', hover_color: 'var(--header-hover)' %}
+    </ul>
+  </article>
+{% endcapture %}
+
+{% case logo_align %}
+{% when 'a-center' %}
+  {%- if nav_style_drawer -%}
+    {{ nav_drawer }}
+    {{ nav_full }}
+  {%- else -%}
+    {{ nav_full }}
+  {%- endif -%}
+  {{ nav_logo }}
+  {{ cart_links }}
+{% when 'a-left' %}
+  {{ nav_logo }}
+  {{ nav_full }}
+  {{ cart_links }}
+{% endcase %}

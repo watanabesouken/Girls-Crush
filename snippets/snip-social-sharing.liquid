@@ -1,0 +1,53 @@
+<div class="social-icons__share--wrapper share-icons v-center">
+  <p class="social-icons__share--label span-1 sm-span-1 auto v-center px2 mb0">
+    {{ 'products.product.social_share' | t }}
+  </p>
+
+  <a class="social-icons__share--link span-3 sm-span-3 auto a-center m0"
+    target="_blank"
+    rel="noreferrer"
+    href="//www.facebook.com/sharer.php?u={{ shop.url | append: share_permalink }}"
+    aria-label="{{ 'social.icons.facebook' | t }}">
+    <span class="vib-center sm {{ text_status }} sm-hide">{{ 'social.icons.facebook' | t }}</span>
+    {% render 'snip-icons',
+       wrapper: '.social-icons__share--wrapper',
+       type: 'social',
+       icon: 'facebook',
+       size: '20px',
+       classes: 'm0 p0 vib-center',
+       fill: 'var(--text-color)',
+       hover: 'var(--text-color-light)' %}
+  </a>
+
+  <a class="social-icons__share--link span-3 sm-span-3 auto a-center m0"
+    target="_blank"
+    rel="noreferrer"
+    href="//twitter.com/share?text={{ share_title | url_param_escape }}&amp;url={{ shop.url | append: share_permalink }}"
+    aria-label="{{ 'social.icons.twitter' | t }}">
+    <span class="vib-center sm {{ text_status }} sm-hide">{{ 'social.icons.twitter' | t }}</span>
+    {% render 'snip-icons',
+       wrapper: '.social-icons__share--wrapper',
+       type: 'social',
+       icon: 'twitter',
+       size: '20px',
+       classes: 'm0 p0 vib-center',
+       fill: 'var(--text-color)',
+       hover: 'var(--text-color-light)' %}
+  </a>
+
+  <a class="social-icons__share--link span-3 sm-span-3 auto a-center m0"
+    target="_blank"
+    rel="noreferrer"
+    href="//pinterest.com/pin/create/button/?url={{ shop.url | append: share_permalink }}&amp;media={{ share_image | img_url: '1024x1024' }}&amp;description={{ share_title | url_param_escape }}"
+    aria-label="{{ 'social.icons.pinterest' | t }}">
+    <span class="vib-center sm {{ text_status }} sm-hide">{{ 'social.icons.pinterest' | t }}</span>
+    {% render 'snip-icons',
+       wrapper: '.social-icons__share--wrapper',
+       type: 'social',
+       icon: 'pinterest',
+       size: '20px',
+       classes: 'm0 p0 vib-center',
+       fill: 'var(--text-color)',
+       hover: 'var(--text-color-light)' %}
+  </a>
+</div>

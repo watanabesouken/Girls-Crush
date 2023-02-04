@@ -1,0 +1,79 @@
+{%- liquid
+
+  assign product_form_id = 'product-form-' | append: section.id
+
+-%}
+
+{% form 'product', product,
+   id: product_form_id,
+   class: "product__form-container product_form relative",
+   data-product-form: product_form_config,
+   data-product-id: product.id %}
+
+  {% if show_sku %}
+   <div class="product__sku-container {% unless product.has_only_default_variant %}sku--absolute{% endunless %}{% if current_variant.sku == blank %} display-none{% endif %}">
+     <span class="product__sku-label">{{ 'customer.order.details.sku' | t }}: &nbsp;</span>
+     <span class="product__sku-value js-variant-sku">{{ current_variant.sku }}</span>
+   </div>
+  {% endif %}
+
+  {%- unless product.has_only_default_variant -%}
+   {%- if settings.product_variants == 'swatches' -%}
+     <div class="product__variants-swatches mt4 mb4 no-js-hidden" data-section="{{ section.id }}" data-url="{{ product.url }}">
+       {% for option in product.options_with_values %}
+         {% render "snip-swatch",
+           option: option,
+           current_variant: current_variant,
+           product: product,
+           show_color_swatches: settings.show_color_swatches,
+           color_swatch_shape: settings.color_swatch_shape,
+           color_swatch_style: settings.color_swatch_style %}
+       {% endfor %}
+     </div>
+   {%- else -%}
+     <div class="product__variants-select no-js-hidden" data-section="{{ section.id }}" data-url="{{ product.url }}">
+       {%- for option in product.options_with_values -%}
+         <div class="product-form__input product-form__input--dropdown">
+           <label class="form__label" for="Option-{{ section.id }}-{{ forloop.index0 }}">
+             {{ option.name }}
+           </label>
+           <div class="select">
+             <select id="Option-{{ section.id }}-{{ forloop.index0 }}"
+               class="js-variant-selector"
+               name="options[{{ option.name | escape }}]"
+               form="product-form-{{ section.id }}"
+             >
+               {%- for value in option.values -%}
+                 <option value="{{ value | escape }}" {% if option.selected_value == value %}selected="selected"{% endif %}>
+                   {{ value }}
+                 </option>
+               {%- endfor -%}
+             </select>
+           </div>
+         </div>
+       {%- endfor -%}
+     </div>
+   {%- endif -%}
+  {%- endunless -%}
+
+  <noscript class="product__variants-select product-form__noscript-wrapper-{{ section.id }}">
+    <div class="product-form__input product-form__input--dropdown{% if product.has_only_default_variant %} hidden{% endif %}">
+      <label class="form__label" for="Variants-{{ section.id }}">{{ 'products.product.choose_option' | t }}</label>
+      <div class="select">
+        <select name="id" id="Variants-{{ section.id }}">
+          {%- for variant in product.variants -%}
+            <option
+              {% if variant == product.selected_or_first_available_variant %}selected="selected"{% endif %}
+              {% if variant.available == false %}disabled{% endif %}
+              value="{{ variant.id }}"
+            >
+              {{ variant.title }}
+              {%- if variant.available == false %} - {{ 'products.product.sold_out' | t }}{% endif %}
+              - {{ variant.price | money | strip_html }}
+            </option>
+          {%- endfor -%}
+        </select>
+      </div>
+    </div>
+  </noscript>
+{% endform %}

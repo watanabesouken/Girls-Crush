@@ -1,0 +1,61 @@
+{% comment %}
+    Renders a list of product's price (regular, sale, unit)
+    Accompanies product forms and meant to be updated dynamically
+    Accepts:
+    - variant: {Object} Variant Liquid object (optional)
+    - product: {Object} Product Liquid object (optional)
+
+    Usage:
+    {% render 'product-price', variant: current_variant, product: product %}
+{% endcomment %}
+
+{%- liquid
+  if variant.title
+    assign compare_at_price = variant.compare_at_price
+    assign price = variant.price
+    assign available = variant.available
+  else
+    assign compare_at_price = 1999
+    assign price = 1999
+    assign available = true
+  endif
+
+  assign money_price = price | money
+-%}
+
+<link rel="preload" href="{{ 'component-price.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'component-price.css' | asset_url }}"></noscript>
+
+<div id="product-price" class="product__price-container price
+  {% if available == false %} price--sold-out {% endif %}
+  {% if compare_at_price > price %} price--on-sale {% endif %}
+  {% if variant.unit_price_measurement %} price--unit-available {% endif %}"
+  data-price>
+
+  <p class="price-item price-item--sale onsale mb0"
+    aria-label="{{ 'products.general.sale_price' | t }}"
+    data-sale-price
+    {% unless compare_at_price >  price %}style="display: none;"{% endunless %}>
+    {{ money_price }}
+  </p>
+
+  <p class="price-item--regular mb0 inline-block" aria-label="{{ 'products.general.regular_price' | t }}" data-regular-price>
+    {%- if compare_at_price >  price  -%}
+      {{ compare_at_price | money }}
+    {%- else -%}
+      {{ money_price }}
+    {%- endif -%}
+  </p>
+
+  <div class="price__badges">
+    <span class="price__badge price__badge--sale"
+      {% unless compare_at_price >  price %}style="display: none;"{% endunless %}
+      aria-hidden="true">
+      <span>{{ 'products.general.sale' | t }}</span>
+    </span>
+    <span class="price__badge price__badge--sold-out"
+    {% unless available == false %}style="display: none;"{% endunless %}>
+      <span>{{ 'products.product.sold_out' | t }}</span>
+    </span>
+  </div>
+</div>

@@ -1,0 +1,144 @@
+{% comment %} Product Recommendations Logic {% endcomment %}
+{%- liquid
+
+  if settings.section_title_align == 'left'
+    assign heading_align = 'a-left'
+  else
+    assign heading_align = 'a-center'
+  endif
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+-%}
+{% comment %} Product Recommendations Template {% endcomment %}
+{%- if recommendations.performed and recommendations.products_count > 0 -%}
+  <link rel="preload" href="{{ 'component-product-grid.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="{{ 'component-product-grid.css' | asset_url }}"></noscript>
+
+  <div
+    class="global__section product-recommendations__wrapper relative {{ section_padding }}">
+      <div class="product-recommendations">
+        <div class="grid__wrapper">
+          {% render 'snip-headings', grid: 'span-12', align: heading_align, heading: section.settings.product_recommendations_heading %}
+        </div>
+
+        <div class="product-loop grid__wrapper cg6 sm-cg1 rg9">
+          {%- for product in recommendations.products limit: section.settings.items_shown -%}
+          {%- liquid
+
+            case section.settings.items_per_row
+            when 4
+              assign items_per_row = 'span-3 md-span-4 sm-span-6 auto'
+            when 3
+              assign items_per_row = 'span-4 sm-span-6 auto'
+            when 2
+              assign items_per_row = 'span-6 sm-span-6 auto'
+            when 1
+              assign items_per_row = 'span-12 sm-span-6 auto'
+            endcase
+
+              if section.settings.mobile_items_per_row
+                assign mobile_items_per_row = 'sm-span-6'
+              else
+                assign mobile_items_per_row = 'sm-span-12'
+              endif
+
+          -%}
+            {% render 'product-loop',
+              collection: collection,
+              product: product,
+              product_info_align: settings.product_grid_alignment,
+              grid_items: section.settings.items_per_row,
+              items_per_row: items_per_row,
+              featured_collection: false,
+              mobile_items_per_row: mobile_items_per_row %}
+
+          {%- endfor -%}
+        </div>
+      </div>
+  </div>
+{%- else -%}
+<div class="page-width js-product-rec-wrapper"
+  data-base-url="{{ routes.product_recommendations_url }}"
+  data-product-id="{{ product.id }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="product-recommendations"
+  data-section-loaded="false"
+  data-asset-url="{{ 'section-product-recommendations.js' | asset_url }}">
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Product recommendations",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Dynamic recommendations use order and product information to change and improve over time. [Learn more](https://help.shopify.com/en/themes/development/recommended-products)"
+    },
+    {
+      "type": "text",
+      "id": "product_recommendations_heading",
+      "label": "Heading",
+      "default": "Related Products"
+    },
+    {
+      "type": "range",
+      "id": "items_per_row",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "label": "Products per row",
+      "default": 3
+    },
+    {
+      "type": "range",
+      "id": "items_shown",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "label": "Products shown",
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "mobile_items_per_row",
+      "label": "Two per row on mobile",
+      "default": false,
+      "info": "Default is one product per row"
+    },
+    {
+      "type": "select",
+      "id": "section_padding",
+      "label": "Section spacing",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "both"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,441 @@
+{% comment %} Header Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-header.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-header.css' | asset_url }}"></noscript>
+
+{% comment %} Header Logic {% endcomment %}
+{%- liquid
+
+  assign layout_style = ''
+  if section.settings.header_layout == 'inline_layout_left' or section.settings.header_layout == 'inline_layout_center'
+    assign layout_style = 'inline-layout'
+  else
+    assign layout_style = 'block-layout'
+  endif
+
+  if section.settings.enable_sticky
+    assign sticky = 'stickynav'
+    assign sticky_js = 'js-stickynav'
+  endif
+
+  assign nav_align = ''
+  assign nav_width = ''
+  assign logo_width = ''
+  assign cartlink_width = ''
+  if section.settings.header_layout == 'inline_layout_left' or section.settings.header_layout == 'block_layout_left'
+    assign logo_width = 'span-3 auto'
+    assign nav_width = 'span-6 auto'
+    assign cartlink_width = 'span-3 auto'
+  else
+    assign logo_width = 'span-4 auto'
+    assign nav_width = 'span-4 auto'
+    assign cartlink_width = 'span-4 auto'
+  endif
+
+  if section.settings.header_layout == 'block_layout_center'
+    assign logo_width = 'push-4 span-4 auto'
+    assign cartlink_width = 'span-4 auto'
+  elsif section.settings.header_layout == 'block_layout_left'
+    assign logo_width = 'span-4 auto'
+    assign cartlink_width = 'span-8 auto'
+  endif
+
+  if section.settings.header_layout == 'block_layout_left'
+    assign logo_align = 'a-left'
+    assign nav_align = 'v-center a-left'
+  elsif section.settings.header_layout == 'block_layout_center'
+    assign logo_align = 'a-center'
+    assign nav_align = 'v-center a-center'
+  elsif section.settings.header_layout == 'inline_layout_left'
+    assign logo_align = 'a-left'
+    assign nav_align = 'v-center a-center'
+  elsif section.settings.header_layout == 'inline_layout_center'
+    assign logo_align = 'a-center'
+    assign nav_align = 'v-center a-left'
+  endif
+
+  assign use_icons = false
+  if section.settings.show_desktop_icons
+    assign use_icons = true
+  endif
+
+  assign undo_over_header = false
+  assign coming_soon = false
+  if template contains 'product'
+    if product.metafields.my_fields.launch != blank
+      assign launch_date = product.metafields.my_fields.launch.value | date: "%s"
+      assign launch_timestamp = launch_date | date: "%s"
+      assign date_now = "now" | date: "%s"
+
+      if launch_date > date_now
+        assign coming_soon = true
+      endif
+    endif
+
+    if coming_soon == false
+      assign undo_over_header = true
+    endif
+  endif
+
+  if undo_over_header
+    assign clear_class = 'over-content--false'
+    assign head_class = 'header__over-content--false'
+  else
+    assign clear_class = 'over-content--' | append: section.settings.header_over_content
+    assign head_class = 'header__over-content--' | append: section.settings.header_over_content
+  endif
+
+-%}
+
+{% comment %} Header Template {% endcomment %}
+<header class="section-header header-section no-section-animation {{ head_class }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="header"
+  data-asset-url="{{ 'section-header.js' | asset_url }}">
+
+  <section class="section-header__main-bar main-bar w100 sm-hide js-theme-header {{ sticky }}" {{ sticky_js }}>
+    <div class="grid__wrapper {{ layout_style }}">
+      {% if layout_style == 'inline-layout' %}
+        {% render 'header-inline', use_icons: use_icons, nav_align: nav_align, nav_width: nav_width, logo_align: logo_align,  cartlink_width: cartlink_width, logo_width: logo_width, nav_style_drawer: section.settings.nav_style_drawer %}
+      {% else %}
+        {% render 'header-block', use_icons: use_icons, nav_align: nav_align, nav_width: nav_width, logo_align: logo_align, cartlink_width: cartlink_width, logo_width: logo_width %}
+      {% endif %}
+    </div>
+  </section>
+
+  <section class="section-header__searchbox searchbox grid__wrapper edge py7">
+    <article class="span-10 push-1 auto v-stretch v-center">
+      <input type="checkbox" id="search-close" class="searchbox__close-input radio-hide" />
+      <label class="searchbox__close-label search-close" for="search-close">
+        {% render 'snip-icons',
+          wrapper: '.section-header__searchbox',
+          type: 'theme',
+          icon: 'close',
+          size: '20px',
+          classes: 'mt0 mr0 mb0 ml0',
+          fill: 'var(--header-text)',
+          hover: 'var(--header-hover)' %}
+      </label>
+
+      {%- if settings.predictive_search_enabled -%}
+      <div
+        id="predictiveSearch"
+        data-section-type="predictive-search"
+        data-asset-url="{{ 'section-predictive-search.js' | asset_url }}"
+        data-routes="{{ routes.predictive_search_url | default: '/search/suggest' }}"
+        data-show-only-products="{{ settings.search_show_products_only | default: 'false' }}"
+        data-results-per-resource="6"
+        data-input-selector='input[name="q"]'
+        data-results-selector="#predictive-search"
+        >
+      {%- endif -%}
+      <form class="searchbox__form" action="{{ routes.search_url }}" method="get">
+        <input class="searchbox__input mb0" type="text" autocomplete="off" name="q" id="q" placeholder="Search..." />
+        <input name="options[prefix]" type="hidden" value="last">
+
+        {% if settings.search_show_products_only %}
+          <input type="hidden" name="type" value="product">
+        {% endif %}
+
+        {%- if settings.predictive_search_enabled -%}
+          <div id="predictive-search"
+            class="predictive-search"
+            tabindex="-1"></div>
+        {%- endif -%}
+      </form>
+      {%- if settings.predictive_search_enabled -%}
+    </div>
+      {%- endif -%}
+
+    </article>
+  </section>
+
+  <section class="section-header__mobile mobile-nav__mobile-header {{ sticky }} md-hide lg-hide l0 z5 js-mobile-header">
+    <article id="mobile-menu" class="grid__wrapper">
+      <ul class="span-3 md-span-3 sm-span-3 auto a-left v-center list-style-none mb0">
+        <li>
+          <div class="slideout__trigger--open text-left">
+            <button class="slideout__trigger-mobile-menu js-slideout-open btn-as-link color--header-text" data-wau-slideout-target="mobile-navigation" data-slideout-direction="left" aria-label="Open navigation" tabindex="0" type="button" name="button">
+              {% render 'snip-icons',
+                 wrapper: '.section-header__mobile',
+                 type: 'theme',
+                 icon: 'menu-bars',
+                 size: '14px',
+                 classes: 'mt0 mr2 mb0 ml0',
+                 fill: 'var(--header-text)',
+                 hover: 'var(--header-hover)' %}
+            </button>
+          </div>
+        </li>
+      </ul>
+      <div class="site-logo mobile-nav__logo-wrapper span-6 md-span-6 sm-span-6 auto a-center v-center shrink-wrap">
+        {% if section.settings.logo != blank %}
+          <a class="mobile-nav__img-logo inline-block lh0 mb0 shrink-wrap" href="{{ routes.root_url }}"><img class="py1" src="{{ section.settings.logo | img_url: '800x' }}" loading="lazy" alt="{{ shop.name }}"></a>
+        {% else %}
+          <a class="mobile-nav__text-logo inline-block v-center m0 color--header-text" href="{{ routes.root_url }}">{{ shop.name }}</a>
+        {% endif %}
+      </div>
+      <ul class="header__cart-links__wrapper--mobile span-3 md-span-3 sm-span-3 auto a-right v-center list-style-none inline-block mb0">
+        {% render 'header-cart-links', classes: "m0 p0", use_icons: true, is_mobile: true, fill_color: 'var(--header-text)', hover_color: 'var(--header-hover)' %}
+      </ul>
+    </article>
+  </section>
+
+  <style>
+    .header__logo-wrapper a {
+      font-size: {{ section.settings.logo_size }}px;
+      max-width: {{ section.settings.logo_max_width }}px;
+      word-break: break-word;
+    }
+    .mobile-nav__img-logo {
+      max-width: {{ section.settings.logo_max_width }}px;
+    }
+  </style>
+</header>
+
+<div class="clear js-clear-element {{ clear_class }}"></div>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "header",
+      "content": "Layout options"
+    },
+    {
+      "type": "select",
+      "id": "header_layout",
+      "label": "Header layout",
+      "options": [
+        {
+          "value": "block_layout_left",
+          "label": "Logo left above menu"
+        },
+        {
+          "value": "block_layout_center",
+          "label": "Logo center above menu"
+        },
+        {
+          "value": "inline_layout_left",
+          "label": "Logo left inline with menu"
+        },
+        {
+          "value": "inline_layout_center",
+          "label": "Center logo inline with menu"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "header_over_content",
+      "default": false,
+      "label": "Enable header over content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sticky",
+      "default": false,
+      "label": "Enable sticky header"
+    },
+    {
+      "type": "header",
+      "content": "Logo"
+    },
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo image"
+    },
+    {
+      "type": "range",
+      "id": "logo_max_width",
+      "min": 50,
+      "max": 500,
+      "step": 5,
+      "unit": "px",
+      "label": "Logo width",
+      "default": 280
+    },
+    {
+      "type": "range",
+      "id": "logo_size",
+      "min": 12,
+      "max": 36,
+      "step": 1,
+      "unit": "px",
+      "label": "Logo text",
+      "default": 18
+    },
+    {
+      "type": "header",
+      "content": "Navigation"
+    },
+    {
+      "type": "link_list",
+      "id": "main_nav",
+      "label": "Choose main menu",
+	    "default":"main-menu",
+      "info": "It is best practice to select the same menu used in the Mobile Nav. [Learn More](https://developers.google.com/search/mobile-sites/mobile-first-indexing)"
+    },
+    {
+      "type": "checkbox",
+      "id": "nav_style_drawer",
+      "default": false,
+      "label": "Use mobile nav on desktop",
+      "info": "Only compatible with header layout \"center logo inline with menu\"."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_desktop_icons",
+      "default": false,
+      "label": "Use icons",
+      "info": " On desktop for cart link"
+    }
+	],
+  "blocks": [
+    {
+      "type": "linklist_with_images",
+       "name": "Links with images",
+       "settings": [
+        {
+          "type":"text",
+          "id":"linklist_images_menu_item",
+          "label":"Navigation item",
+          "info":"Enter navigation item to apply a mega menu. This menu will display a maximum of three link columns and three custom photos. Set up linklists in Admin > Online Store > Navigation."
+        },
+        {
+          "type": "select",
+          "id": "image_ratio",
+          "default": "vertical",
+          "options": [
+             { "value": "vertical", "label": "Vertical images"},
+             { "value": "horizontal", "label": "Horizontal images"},
+             { "value": "square", "label": "Square images"}
+          ],
+          "label": "Image ratio"
+        },
+        {
+          "type": "select",
+          "id": "links_alignment",
+          "label": "Image label alignment",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            }
+          ],
+          "default": "left"
+        },
+        {
+          "type": "image_picker",
+          "id": "featured_image_1",
+          "label": "Select a featured image #1"
+        },
+        {
+          "type": "text",
+          "id": "featured_image_label_1",
+          "label": "Featured image label #1"
+        },
+        {
+          "id": "image_url_1",
+          "type": "url",
+          "label": "Image link #1"
+        },
+        {
+          "type": "image_picker",
+          "id": "featured_image_2",
+          "label": "Select a featured image #2"
+        },
+        {
+          "type": "text",
+          "id": "featured_image_label_2",
+          "label": "Featured image label #2"
+        },
+        {
+          "id": "image_url_2",
+          "type": "url",
+          "label": "Image link #2"
+        },
+        {
+          "type": "image_picker",
+          "id": "featured_image_3",
+          "label": "Select a featured image #3"
+        },
+        {
+          "type": "text",
+          "id": "featured_image_label_3",
+          "label": "Featured image label #3"
+         },
+         {
+          "id": "image_url_3",
+          "type": "url",
+          "label": "Image link #3"
+        }
+      ]
+    },
+    {
+      "type": "collection_list",
+       "name": "Collection list",
+       "settings": [
+        {
+          "type":"text",
+          "id":"linklist_images_menu_item",
+          "label":"Navigation item",
+          "info":"Enter navigation item to apply a mega menu. This menu will display a maximum of three link columns and three custom photos. Set up linklists in Admin > Online Store > Navigation."
+        },
+        {
+          "type": "select",
+          "id": "image_ratio",
+          "default": "square",
+          "options": [
+             { "value": "vertical", "label": "Vertical images"},
+             { "value": "horizontal", "label": "Horizontal images"},
+             { "value": "square", "label": "Square images"}
+          ],
+          "label": "Image ratio"
+        },
+        {
+          "type": "select",
+          "id": "links_alignment",
+          "label": "Alignment",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            }
+          ],
+          "default": "left"
+        },
+        {
+          "label": "Collection one",
+          "id": "collection_1",
+          "type": "collection"
+        },
+        {
+          "label": "Collection two",
+          "id": "collection_2",
+          "type": "collection"
+        },
+        {
+          "label": "Collection three",
+          "id": "collection_3",
+          "type": "collection"
+        },
+        {
+          "label": "Collection four",
+          "id": "collection_4",
+          "type": "collection"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

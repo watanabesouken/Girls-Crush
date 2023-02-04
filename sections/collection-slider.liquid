@@ -1,0 +1,335 @@
+{% comment %} Collection Slider Logic {% endcomment %}
+{%- liquid
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+  if section.settings.item_position == 'left'
+    assign position_one = 'first'
+    assign position_two = 'last'
+    assign cell_align = 'right'
+    assign mob_padding = 'sm-pr3'
+  elsif section.settings.item_position == 'right'
+    assign position_one = 'last'
+    assign position_two = 'first'
+    assign cell_align = 'left'
+    assign mob_padding = 'sm-pl3'
+  endif
+
+  assign sm_render = '100vw'
+  assign md_render = '550px'
+  assign lg_render = '550px'
+
+  case section.settings.text_align
+  when 'left'
+    assign text_align =  'a-left'
+  when 'center'
+    assign text_align =  'a-center'
+  when 'right'
+    assign text_align =  'a-right'
+  endcase
+
+
+  assign collection = collections[section.settings.collection]
+  assign prod_limit = section.settings.items_per_page
+
+  if collection != blank
+    if collection.products.size < prod_limit
+      assign prod_avail = collection.products.size
+    else
+      assign prod_avail = prod_limit
+    endif
+  else
+    assign prod_avail = prod_limit
+  endif
+
+-%}
+
+{% comment %} Collection Slider Template {% endcomment %}
+<div
+  class="section-collection-slider collection-slider-{{ section.id }} global__section {{ section_padding }}"
+  data-section-id="{{ section.id }}"
+  data-asset-url="{{ 'carousel.js' | asset_url }}"
+  data-section-type="carousel"
+  data-section-loaded="false">
+
+  <div class="grid__wrapper edge aflow rg0">
+    <article class="sm-span-12 auto md-hide lg-hide sm-px3">
+      <h2 class="collection-slider__block-heading">
+        {%- if collection == blank -%}
+          Collection Slider
+        {%- elsif section.settings.title != blank -%}
+          {{ section.settings.title | escape }}
+        {%- else -%}
+          {{ collection.title }}
+        {%- endif -%}
+      </h2>
+    </article>
+    <article class="span-7 auto {{ position_one }} {{ mob_padding }}">
+      {% capture carousel_config %}{
+        "wrapAround":true,
+        "dragThreshold":"15",
+        "pauseAutoPlayOnHover":false,
+        "pageDots": false,
+        "prevNextButtons":true,
+        "cellAlign": {{ cell_align | json }},
+        "arrowShape": "M74.5,83.2c-0.4,0.6-1,0.9-1.6,0.9c-0.4,0-0.8-0.1-1.1-0.4L26,51.6c0,0-0.1-0.1-0.1-0.1c0,0-0.1-0.1-0.1-0.1c-0.1-0.1-0.1-0.2-0.2-0.2c0,0,0,0-0.1-0.1c0,0,0,0,0,0c0-0.1-0.1-0.1-0.1-0.2c0-0.1-0.1-0.1-0.1-0.2c0-0.1,0-0.1-0.1-0.2c0-0.1,0-0.1-0.1-0.2c0-0.1,0-0.1,0-0.2c0-0.1,0-0.1,0-0.2c0-0.1,0-0.1,0-0.2c0-0.1,0-0.1,0-0.2c0-0.1,0-0.1,0.1-0.2c0-0.1,0-0.1,0.1-0.2c0-0.1,0.1-0.1,0.1-0.2c0-0.1,0.1-0.1,0.1-0.2c0,0,0,0,0,0c0,0,0.1-0.1,0.1-0.1c0-0.1,0.1-0.1,0.1-0.2c0.1-0.1,0.1-0.1,0.2-0.1c0,0,0.1-0.1,0.1-0.1l45.8-32c0.9-0.6,2.2-0.4,2.8,0.5c0.6,0.9,0.4,2.2-0.5,2.8L30.6,50L74,80.4C74.9,81,75.1,82.3,74.5,83.2z"
+     }{% endcapture %}
+      <p class="collection-slider__pagination js-carousel-pagination mb2">
+        (1 of {{ prod_avail }})
+      </p>
+      <div class="collection-slider__main-carousel v-center js-carousel"  data-flickity='{{ carousel_config }}'>
+        {%- if collection != blank -%}
+          {% for product in collection.products limit: prod_limit %}
+            <div
+              class="collection-slider__slide carousel-cell slide-{{ forloop.index0 }}"
+              data-slider-index="{{ forloop.index0 }}">
+
+              {% if product.featured_media.preview_image == blank %}
+                <div class="placeholder-image demo-1 color-1">
+                  {{ 'product-2' | placeholder_svg_tag: 'placeholder-svg' }}
+                </div>
+              {% else %}
+                <a href="{{ product.url }}">
+                  {% render 'helper-image',
+                     type: product.featured_media.preview_image,
+                     sm_render: sm_render
+                     md_render: md_render,
+                     lg_render: lg_render %}
+                </a>
+              {% endif %}
+
+            </div>
+          {% endfor %}
+        {%- else -%}
+          {% for n in (1..prod_limit) %}
+            <div
+            class="collection-slider__slide carousel-cell slide-{{ forloop.index0 }}"
+            data-slider-index="{{ forloop.index0 }}">
+              <div class="placeholder-image demo-1 color-1">
+                {{ 'product-2' | placeholder_svg_tag: 'placeholder-svg' }}
+              </div>
+            </div>
+          {% endfor %}
+        {%- endif -%}
+      </div>
+    </article>
+    <article class="span-5 auto {{ position_two }} {{ text_align }} v-center px6 sm-px3">
+      <div class="collection-slider__caption">
+        <h2 class="collection-slider__block-heading sm-hide animate--text delay--1">
+          {%- if collection == blank -%}
+            Collection Slider
+          {%- elsif section.settings.title != blank -%}
+            {{ section.settings.title | escape }}
+          {%- else -%}
+            {{ collection.title }}
+          {%- endif -%}
+        </h2>
+        <div class="collection-slider__block-subheading rte mb1 sm-pt2 animate--text delay--2">
+          {%- if collection == blank -%}
+            <p>Choose a collection to show the description, or add section text in the editor.</p>
+          {%- elsif section.settings.text != blank -%}
+            {{ section.settings.text }}
+          {%- else -%}
+            {{ collection.description | split: '[#' | first | remove: "[banner]" }}
+          {%- endif -%}
+        </div>
+        {% if section.settings.button != blank and section.settings.link != blank %}
+          <a href="{{ section.settings.link }}" class="collection-slider__button button btn-outlined mt3 animate--text delay--3">
+            {{ section.settings.button | escape }}
+          </a>
+        {% else collection != blank and section.settings.button != blank %}
+          <a href="{{ collection.url }}" class="collection-slider__button button btn-outlined mt3 animate--text delay--3">
+            {{ section.settings.button | escape }}
+          </a>
+        {% endif %}
+      </div>
+    </article>
+
+  </div>
+  <style>
+    {%- if section.settings.item_position == 'right' -%}
+      @media (max-width:767px) {
+        .collection-slider-{{ section.id }} .grid__wrapper>.first {
+          order: 2;
+        }
+      }
+    {%- endif -%}
+    .collection-slider__slide {
+      width: 70% !important;
+      margin-right: var(--space-3);
+    }
+    .collection-slider__slide .box-ratio {
+      padding-bottom: 100% !important;
+    }
+    .collection-slider__slide .box-ratio img {
+      object-fit: cover;
+      object-position: center;
+      height: auto;
+      width: calc(100vw / 2);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    @media (min-width: 1800px) {
+      .collection-slider__slide .box-ratio img {
+        width: calc((100vw / 2) - 200px);
+      }
+    }
+    @media (max-width: 767px) {
+      .collection-slider__slide .box-ratio img {
+        width: 100vw;
+      }
+    }
+    .collection-slider-{{ section.id }} .flickity-prev-next-button.next {
+      bottom: unset !important;
+      top: -30px;
+    }
+    .collection-slider-{{ section.id }} .flickity-prev-next-button.previous {
+      bottom: unset !important;
+      top: -30px;
+    }
+    {%- if section.settings.item_position == 'right' -%}
+      .collection-slider-{{ section.id }} .flickity-prev-next-button.next {
+        right: 10px !important;
+        left: unset !important;
+      }
+      .collection-slider-{{ section.id }} .flickity-prev-next-button.previous {
+        right: 50px !important;
+        left: unset !important;
+      }
+    {%- else -%}
+      .collection-slider-{{ section.id }} .collection-slider__pagination {
+        text-align: right;
+      }
+      .collection-slider-{{ section.id }} .flickity-prev-next-button.next {
+        left: 50px !important;
+        right: unset !important;
+      }
+      .collection-slider-{{ section.id }} .flickity-prev-next-button.previous {
+        left: 10px !important;
+        right: unset  !important;
+      }
+    {%- endif -%}
+
+  </style>
+</div>
+{% schema %}
+  {
+    "name": "Collection slider",
+    "class": "dynamic-section",
+    "settings": [
+      {
+        "label": "Collection",
+        "id": "collection",
+        "type": "collection"
+      },
+      {
+        "type": "select",
+        "id": "item_position",
+        "label": "Carousel position",
+        "default": "right",
+        "options": [
+          { "value": "left", "label": "Left" },
+          { "value": "right", "label": "Right" }
+        ]
+      },
+      {
+        "type": "range",
+        "id": "items_per_page",
+        "min": 2,
+        "max": 30,
+        "step": 1,
+        "label": "Products shown",
+        "default": 8
+      },
+      {
+       "type": "header",
+       "content": "Caption settings"
+      },
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Heading",
+        "info": "Defaults to collection title if blank."
+      },
+      {
+        "type": "richtext",
+        "id": "text",
+        "label": "Text",
+        "info": "Defaults to collection description if blank."
+      },
+      {
+        "type": "text",
+        "id": "button",
+        "label": "Button label",
+        "default": "Shop the Collection"
+      },
+      {
+        "type": "url",
+        "id": "link",
+        "label": "Button link",
+        "info": "Defaults to collection url if blank."
+      },
+      {
+        "type": "select",
+        "id": "text_align",
+        "label": "Text alignment",
+        "default": "left",
+        "options": [
+          {
+            "value": "left",
+            "label": "Left"
+          },
+          {
+            "value": "right",
+            "label": "Right"
+          },
+          {
+            "value": "center",
+            "label": "Center"
+          }
+        ]
+      },
+      {
+        "type": "header",
+        "content": "Section settings"
+      },
+      {
+        "type": "select",
+        "id": "section_padding",
+        "label": "Section spacing",
+        "options": [
+          {
+            "value": "top",
+            "label": "Top"
+          },
+          {
+            "value": "bottom",
+            "label": "Bottom"
+          },
+          {
+            "value": "both",
+            "label": "Both"
+          },
+          {
+            "value": "none",
+            "label": "None"
+          }
+        ],
+        "default": "both"
+      }
+    ],
+  "presets": [{
+    "name": "Collection slider"
+    }
+  ],
+ "templates": ["404", "article", "blog", "cart", "collection", "list-collections", "index", "page", "product", "search"]
+}
+{% endschema %}

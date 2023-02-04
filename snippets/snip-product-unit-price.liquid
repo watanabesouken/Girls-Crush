@@ -1,0 +1,21 @@
+<div class="product__unit-price--wrapper inline-block ml4" {%- unless variant.unit_price -%}style="display: none;"{%- endunless -%} data-unit-price-wrapper>
+  <span class="visually-hidden visually-hidden--inline">{{ 'general.accessibility.unit_price_label' | t }}</span>
+  <p class="price-unit-price pt1 mb2 {{ product_info_align }}" data-unit-price>
+    {%- capture unit_price_separator -%}
+      <span class="product__unit-price--seperator" aria-hidden="true">/</span>
+      <span class="product__unit-price--seperator-text visually-hidden">{{ 'general.accessibility.unit_price_separator' | t }}&nbsp;</span>
+    {%- endcapture -%}
+    {%- capture unit_price_base_unit -%}
+      <span class="product__unit-price--base-unit">
+        {%- if variant.unit_price_measurement -%}
+          {%- if variant.unit_price_measurement.reference_value != 1 -%}
+            {{- variant.unit_price_measurement.reference_value -}}
+          {%- endif -%}
+          {{ variant.unit_price_measurement.reference_unit }}
+        {%- endif -%}
+      </span>
+    {%- endcapture -%}
+
+    ({{ variant.unit_price | money }} {{- unit_price_separator -}}{{- unit_price_base_unit -}})
+  </p>
+</div>

@@ -1,0 +1,54 @@
+{% comment %} Page Logic {% endcomment %}
+{%- liquid
+
+  if settings.section_title_align == 'left'
+    assign heading_align = 'a-left'
+  else
+    assign heading_align = 'a-center'
+  endif
+
+-%}
+
+{% comment %} Page Template {% endcomment %}
+<section
+  id="page"
+  class="global__section page-template"
+  data-section-id="{{ section.id }}"
+  data-section-type="page-template"
+  data-section-loaded="false">
+
+  <div class="grid__wrapper narrow cg9 sm-cg0">
+    <div class="page-content span-12">
+      <div class="page_inner-container">
+        <div class="rte {{ section.settings.page_alignment }}">
+          {{ page.content }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+</section>
+
+{% schema %}
+{
+  "name": "Page template",
+  "settings": [
+    {
+      "type": "select",
+      "id": "page_alignment",
+      "label": "Content alignment",
+      "default": "a-left",
+      "options": [
+        {
+          "value": "a-left",
+          "label": "Left"
+        },
+        {
+          "value": "a-center",
+          "label": "Center"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

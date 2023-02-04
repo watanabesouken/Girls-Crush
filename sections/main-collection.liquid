@@ -1,0 +1,308 @@
+{% comment %} Collection Page Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-main-collection.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-main-collection.css' | asset_url }}"></noscript>
+<link rel="preload" href="{{ 'component-product-grid.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'component-product-grid.css' | asset_url }}"></noscript>
+
+{% comment %} Collection Page Logic {% endcomment %}
+{%- liquid
+  case section.settings.items_per_row
+  when 4
+    assign items_per_row = 'span-3 md-span-4 auto'
+  when 3
+    assign items_per_row = 'span-4 auto'
+  when 2
+    assign items_per_row = 'span-6 auto'
+  when 1
+    assign items_per_row = 'span-12'
+  endcase
+
+  if section.settings.mobile_items_per_row
+    assign mobile_items_per_row = 'sm-span-6'
+  else
+    assign mobile_items_per_row = 'sm-span-12'
+  endif
+
+  assign page_limit = section.settings.items_per_page
+
+  assign has_sortby = false
+  for block in section.blocks
+    if block.type == 'sort_by'
+      assign has_sortby = true
+      assign sort_by_id = block.id
+    endif
+  endfor
+
+  assign has_filter = false
+  for block in section.blocks
+    if block.type == 'filter'
+      assign has_filter = true
+      assign filter_id = block.id
+    endif
+  endfor
+
+  assign filter_count = 0
+  for filter in collection.filters
+    if filter.type == 'price_range'
+      if filter.min_value.value != nil or filter.max_value.value != nil
+        assign filter_count = 1
+      endif
+    endif
+
+    assign filter_count = filter_count | plus: filter.active_values.size
+  endfor
+
+  assign empty_collection = true
+  if collection.products.size > 0
+    assign empty_collection = false
+  endif
+
+
+  assign coming_soon = false
+  assign flash_sale = false
+
+  if collection.metafields.my_fields.launch != blank
+    assign launch_date = collection.metafields.my_fields.launch.value | date: "%s"
+  elsif collection.description contains '[#launch_date]'
+    assign launch_date = collection.description | split: '[/launch_date]' | first | split: '[#launch_date]' | last
+    assign launch_date = launch_date | date: "%s"
+  endif
+
+  if collection.metafields.my_fields.sale_end != blank
+    assign sale_date = collection.metafields.my_fields.sale_end.value | date: "%s"
+  elsif collection.description contains '[#sale_end]'
+    assign sale_date = collection.description | split: '[/sale_end]' | first | split: '[#sale_end]' | last
+    assign sale_date = sale_date | date: "%s"
+  endif
+
+  assign date_now = "now" | date: "%s"
+
+  if launch_date != blank
+    assign public_launch_date = launch_date | date: "%b %d, %y"
+    if launch_date > date_now
+      assign coming_soon = true
+    endif
+  endif
+
+  if sale_date != blank
+    if sale_date > date_now
+      assign flash_sale = true
+    endif
+  endif
+
+-%}
+
+{% comment %} Collection Page Template {% endcomment %}
+<section
+  id="collection-page"
+  class="collection__page--wrapper collection-template collection-{{ section.id }} mt0 pb9 no-section-animation"
+  data-section-id="{{ section.id }}"
+  data-section-type="collection"
+  data-asset-url="{{ 'section-main-collection.js' | asset_url }}"
+  data-collection-handle="{{ collection.handle }}"
+  data-empty="{{ empty_collection }}">
+
+  {% paginate collection.products by page_limit %}
+    <div id="CollectionProductGrid" class="grid__wrapper">
+
+      <div class="collection__page--description collection-description span-8 push-2 auto mt2 pb2 a-center">
+        <div class="rte">
+          {{ collection.description | split: '[#' | first | remove: "[banner]" }}
+        </div>
+      </div>
+
+      <div class="collection__page--topbar span-12 auto grid__wrapper edge rg0">
+        <div class="span-7 sm-span-3 auto a-left v-center">
+          {%- if section.settings.show_count -%}
+            <p class="topbar__count mb0">{{ 'collections.general.item_count.other' | t: count: collection.products_count }}</p>
+          {%- endif -%}
+        </div>
+        <div class="span-5 sm-span-9 auto a-right v-center">
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'filter' -%}
+                <button class="slideout__trigger-filters button btn-outlined js-slideout-open js-menu-toggle"
+                  data-wau-slideout-target="collection-filters"
+                  data-slideout-direction="left"
+                  data-toggle-menu="filter"
+                  aria-label="Open filters"
+                  {% if collection.all_products_count >= 1000 %}style="display: none;"{% endif %}
+                  tabindex="0" type="button" name="button">
+                  <span class="vib-center no-pe">{{ 'collections.filter.filter' | t }}絞り込み</span>
+                </button>
+              {%- when 'sort_by' -%}
+                <button class="slideout__trigger-filters button btn-outlined js-slideout-open js-menu-toggle"
+                  data-wau-slideout-target="collection-filters"
+                  data-slideout-direction="left"
+                  data-toggle-menu="sort"
+                  aria-label="Open filters"
+                  tabindex="0" type="button" name="button">
+                  <span class="vib-center no-pe">{{ 'collections.sorting.sort_title' | t }}並べ替え</span>
+                </button>
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+        {%- if filter_count > 0 -%}
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'filter' -%}
+                <div class="filter-drawer__filtering__results js-filters-reset span-12 auto">
+                  <h3 class="visually-hidden">{{ 'collections.filter.filtering_by_label' | t }}</h3>
+                  <ul class="current_filters mb0">
+                    {%- for filter in collection.filters -%}
+                      {%- for value in filter.active_values -%}
+                        <li class="current_filters--filter">
+                          <a class="js-current-filter" href="{{ value.url_to_remove }}">
+                            {{ value.label | escape }}
+                          </a>
+                        </li>
+                      {%- endfor -%}
+                      {% if filter.type == "price_range" %}
+                        {%- if filter.min_value.value != nil or filter.max_value.value != nil -%}
+                          <li class="current_filters--filter">
+                            <a class="js-current-filter" href="{{ filter.url_to_remove }}">
+                              {%- if filter.min_value.value -%}{{ filter.min_value.value | money }}{%- else -%}{{ 0 | money }}{%- endif -%}-{%- if filter.max_value.value -%}{{ filter.max_value.value | money }}{%- else -%}{{ filter.range_max | money }}{%- endif -%}
+                            </a>
+                          </li>
+                        {%- endif -%}
+                      {% endif %}
+                    {%- endfor -%}
+                    {%- liquid
+                      if type == collection
+                        assign clear_url = collection.url
+                      else
+                        assign clear_url = routes.search_url
+                      endif
+                    -%}
+                    <li><a class="current_filters--clear js-current-filter ml4" href="{{ clear_url }}">{{ 'collections.filter.clear_all' | t }}</a></li>
+                  </ul>
+                </div>
+            {%- endif -%}
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+
+      {%- if has_sortby or has_filter -%}
+        <aside class="slideout slideout__drawer-left"
+          data-wau-slideout="collection-filters" id="slideout-collection-filters">
+          <form id="CollectionFiltersForm" data-collection-filters>
+            {% render 'snip-filter-drawer',
+              has_sortby: has_sortby,
+              has_filter: has_filter,
+              type: collection,
+              filter_count: filter_count %}
+          </form>
+        </aside>
+      {%- endif -%}
+
+      {%- if collection.products.size >= 1 -%}
+        <div class="collection span-12" id="main-collection-product-grid" data-id="{{ section.id }}">
+          <div class="product-loop grid__wrapper edge cg6 sm-cg1 rg9">
+            {% if collection != blank %}
+              {% for product in collection.products limit: page_limit %}
+                {% render 'product-loop',
+                  collection: collection,
+                  product: product,
+                  grid_items: section.settings.items_per_row,
+                  product_info_align: settings.product_grid_alignment,
+                  items_per_row: items_per_row,
+                  mobile_items_per_row: mobile_items_per_row %}
+              {% endfor %}
+            {% else %}
+              {% for i in (1..3) %}
+                {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+                {% assign placeholder = 'product-' | append: current %}
+                {% render 'onboard-product-loop',
+                  grid_items: section.settings.items_per_row,
+                  product_info_align: settings.product_grid_alignment,
+                  items_per_row: items_per_row,
+                  placeholder: placeholder,
+                  mobile_items_per_row: mobile_items_per_row %}
+              {% endfor %}
+            {% endif %}
+          </div>
+        </div>
+      {%- else -%}
+        <div class="collection collection--empty span-12 relative" id="main-collection-product-grid" data-id="{{ section.id }}">
+          <div class="js-coll-empty-filter py10 a-center" style="display: none;">
+            <h2>{{ 'collections.filter.no_results' | t  }}</h2>
+            <p>{{ 'collections.filter.use_fewer_filters' | t }}</p>
+            <a class="button btn-outlined" href="{{ collection.url }}">{{ 'collections.filter.clear_all' | t }}</a>
+          </div>
+          <div class="js-coll-empty py10 a-center no-js-show">
+             {%- liquid
+
+                if coming_soon
+                  assign msg_heading = 'collections.general.coming_soon' | t
+                  assign msg_text = 'collections.general.coming_msg_html' | t: date: public_launch_date
+                else
+                  assign msg_heading = 'collections.general.empty' | t
+                  assign msg_text = 'collections.general.no_matches' | t
+                endif
+
+              -%}
+            <h2>コレクションにアイテムがありません🥲</h2>
+            <p>随時NEWアイテムを入荷しています！<br>あと少しだけお待ちください🤞</p>
+            <a class="button btn-outlined" href="https://girls-crush.jp/">トップページへ戻る</a>
+          </div>
+        </div>
+      {%- endif -%}
+     </div>
+     {% unless collection.products_count <= page_limit %}
+       {% render 'snip-pagination', paginate: paginate %}
+     {% endunless %}
+    {% endpaginate %}
+</section>
+
+{% schema %}
+{
+  "name": "Collection page",
+  "max_blocks": 10,
+  "settings":[
+    {
+      "type": "range",
+      "id": "items_per_page",
+      "min": 2,
+      "max": 48,
+      "step": 1,
+      "label": "Products per page",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "items_per_row",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "label": "Products per row",
+      "default": 3
+    },
+    {
+      "type": "checkbox",
+      "id": "mobile_items_per_row",
+      "label": "Two per row on mobile",
+      "default": false,
+      "info": "Default is one product per row"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_count",
+      "label": "Show product count",
+      "default": true
+    }
+  ],
+  "blocks":[
+    {
+      "type":"sort_by",
+      "name":"Sort by",
+      "limit": 1,
+        "settings":[]
+    },
+    {
+      "type":"filter",
+      "name":"Filters",
+      "limit": 1,
+      "settings":[]
+    }
+  ]
+}
+{% endschema %}

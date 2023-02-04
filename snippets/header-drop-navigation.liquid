@@ -1,0 +1,242 @@
+<link rel="preload" href="{{ 'component-navigation.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'component-navigation.css' | asset_url }}"></noscript>
+
+<ul class="header__navigation mb0 inline-block">
+  {% for link in linklists[section.settings.main_nav].links %}
+
+    {% capture dropdown_menu %}
+      <ul class="submenu l-float absolute m0 py1 js-dropdown-nested">
+        {% for sub_link in link.links %}
+          {% if sub_link.links != blank %}
+            <li class="nest has_sub_menu block a-left js-menuitem-with-nested-dropdown js-aria-expand" data-active-class="navigation__menuitem--active" aria-haspopup="true" aria-expanded="false">
+              <a class="block px5 py2 a-left mb0" href="{{ sub_link.url }}">
+                {{ sub_link.title | escape }}
+                {% render 'snip-icons',
+                   wrapper: '.submenu',
+                   type: 'theme',
+                   icon: 'down-carrot',
+                   size: '5px',
+                   classes: 'inactive-arrow mt0 mr0 mb0 ml1',
+                   fill: 'var(--header-text)',
+                   hover: 'var(--header-hover)' %}
+              </a>
+              <ul class="nested js-dropdown-nested py1">
+                {% for sub_sub_link in sub_link.links %}
+                  <li class="block a-left">
+                    <a class="block px5 py2 mb0" href="{{ sub_sub_link.url }}">
+                      {{ sub_sub_link.title }}
+                    </a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% else %}
+            <li class="js-doubletap-to-go js-aria-expand" data-active-class="navigation__menuitem--active">
+              <a class="block px5 py2 js-open-dropdown-on-key mb0 color--header-text" href="{{ sub_link.url }}">
+                {{ sub_link.title | escape }}
+              </a>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% endcapture %}
+
+    {% assign meganav = false %}
+    {% for block in section.blocks %}
+      {%- liquid
+
+        if block.settings.links_alignment == 'left'
+          assign align = 'a-left'
+        else
+          assign align = 'a-center'
+        endif
+
+      -%}
+
+      {% if block.settings.linklist_images_menu_item == link.title %}
+        {% assign meganav = true %}
+        {%- if block.type == 'linklist_with_images' -%}
+          {% capture mega_dropdown_menu %}
+            <nav id="drop-mega-menu" class="header__dropdown__linklist drop sm-hide md-hide menu-{{ block.id }} js-dropdown-megamenu" {{ block.shopify_attributes }}>
+              <div class="grid__wrapper">
+                <div class="span-7 auto left v-center">
+                  <ul class="grid__wrapper wrapper-nest">
+                    {% for sub_link in link.links %}
+                      <li class="span-4 auto"><a href="{{ sub_link.url }}">{{ sub_link.title }}</a>
+                          <ul class="sub-menu {{ align }}">
+                            {% for sub_sub_link in sub_link.links %}
+                              <li class="menu-item">
+                                <a href="{{ sub_sub_link.url }}">{{ sub_sub_link.title }}</a>
+                              </li>
+                            {% endfor %}
+                          </ul>
+                      </li>
+                    {% endfor %}
+                  </ul>
+                </div>
+                <div class="span-5 auto right v-center">
+                  <div class="grid__wrapper edge wrapper-nest">
+                    {% for n in (1..3) %}
+                      {%- liquid
+
+                        assign custom_image = "featured_image_" | append: n
+                        assign custom_image = block.settings[custom_image]
+                        assign custom_title = "featured_image_label_" | append: n
+                        assign custom_title = block.settings[custom_title]
+                        assign custom_url = "image_url_" | append: n
+                        assign custom_url = block.settings[custom_url]
+
+                      -%}
+                      {% if custom_url %}<a class="mega-dropdown__image-wrapper span-4 auto m0" href="{{ custom_url }}">{% else %}<div class="mega-dropdown__image-wrapper span-4 auto m0">{% endif %}
+                        {% if custom_image != blank %}
+                          {% render 'helper-image',
+                             type: custom_image,
+                             sm_render: '360px'
+                             md_render: '360px',
+                             lg_render: '360px' %}
+                        {% endif %}
+                        {% if custom_title != blank %}
+                          <div class="mega-dropdown__image-title mt1 a-{{ block.settings.links_alignment }}">
+                            {{ custom_title }}
+                          </div>
+                        {% endif %}
+                      {% if custom_url %}</a>{% else %}</div>{% endif %}
+                    {% endfor %}
+                  </div>
+                  <style>
+                    .menu-{{ block.id }} .mega-dropdown__image-wrapper .box-ratio {
+                      {%- if block.settings.image_ratio == 'square' -%}
+                        padding-bottom: 100% !important;
+                      {%- elsif block.settings.image_ratio == 'vertical' -%}
+                        padding-bottom: 125% !important;
+                      {%- else -%}
+                        padding-bottom: 66% !important;
+                      {%- endif -%}
+                      position: relative;
+                    }
+                  </style>
+                </div>
+              </div>
+            </nav>
+          {% endcapture %}
+        {%- elsif block.type == 'collection_list' -%}
+          {% capture mega_dropdown_menu %}
+            <nav id="drop-mega-menu" class="header__dropdown__collections drop sm-hide md-hide menu-{{ block.id }} js-dropdown-megamenu" {{ block.shopify_attributes }}>
+              {%- liquid
+
+                assign collection_count = 0
+                if block.settings.collection_1 != blank
+                  assign collection_count = collection_count | plus: 1
+                endif
+                if block.settings.collection_2 != blank
+                  assign collection_count = collection_count | plus: 1
+                endif
+                if block.settings.collection_3 != blank
+                  assign collection_count = collection_count | plus: 1
+                endif
+                if block.settings.collection_4 != blank
+                  assign collection_count = collection_count | plus: 1
+                endif
+
+                if collection_count == 2
+                  assign grid_width = 'span-3'
+                elsif collection_count == 3 or collection_count == 1
+                  assign grid_width = 'span-4'
+                elsif collection_count == 4
+                  assign grid_width = 'span-3'
+                endif
+
+              -%}
+              <div class="grid__wrapper narrow cg6 pt6 pb6">
+                {%- for n in (1..collection_count) -%}
+                  {%- liquid
+                    assign collection_handle = 'collection_' | append: n
+                    assign collection = collections[block.settings[collection_handle]]
+                    assign is_push = ''
+
+                    if collection_count == 1 and forloop.first
+                      assign is_push = 'push-4 px9'
+                    elsif collection_count == 2 and forloop.first
+                      assign is_push = 'push-3'
+                    endif
+                  -%}
+
+                  <div class="{{ grid_width }} {{ is_push }} auto">
+                    <a class="mega-dropdown__image-wrapper span-4 auto m0" href="{{ collection.url }}">
+                      {% if collection.image != blank %}
+                        {% render 'helper-image',
+                           type: collection.image,
+                           sm_render: '360px'
+                           md_render: '360px',
+                           lg_render: '360px' %}
+                      {% elsif collection.products.first.featured_media != blank %}
+                        {% render 'helper-image',
+                           type: collection.products.first.featured_media,
+                           sm_render: '360px'
+                           md_render: '360px',
+                           lg_render: '360px' %}
+                      {% endif %}
+                      <div class="mega-dropdown__image-title mt1 a-{{ block.settings.links_alignment }}">
+                        {{ collection.title }}
+                      </div>
+                    </a>
+                  </div>
+                {%- endfor -%}
+              </div>
+              <style>
+                .menu-{{ block.id }} .mega-dropdown__image-wrapper .box-ratio {
+                  {%- if block.settings.image_ratio == 'square' -%}
+                    padding-bottom: 100% !important;
+                  {%- elsif block.settings.image_ratio == 'vertical' -%}
+                    padding-bottom: 125% !important;
+                  {%- else -%}
+                    padding-bottom: 66% !important;
+                  {%- endif -%}
+                  position: relative;
+                }
+              </style>
+            </nav>
+          {% endcapture %}
+        {%- endif -%}
+      {% endif %}
+    {% endfor %}
+
+    {% if meganav %}
+      <li class="dropdown has_sub_menu js-doubletap-to-go js-aria-expand js-first-level js-menuitem-with-nested-dropdown" data-active-class="navigation__menuitem--active" aria-haspopup="true" aria-expanded="false">
+        <a class="dlink inline-block px1 py4 mb0 {% if link.active %}active{% endif %} js-open-dropdown-on-key color--header-text" href="{{ link.url }}">
+          <span class="navigation__top-level--hover">{{ link.title | escape }}</span>
+          {% render 'snip-icons',
+             wrapper: '.dropdown.has_sub_menu',
+             type: 'theme',
+             icon: 'down-carrot',
+             size: '5px',
+             classes: 'inactive-arrow toplevel mt0 mr0 mb0 ml1',
+             fill: 'var(--header-text)',
+             hover: 'var(--header-hover)' %}
+        </a>
+        {{ mega_dropdown_menu }}
+      </li>
+    {% elsif link.links != blank %}
+      <li class="dropdown has_sub_menu js-doubletap-to-go js-aria-expand js-first-level js-menuitem-with-nested-dropdown" data-active-class="navigation__menuitem--active" aria-haspopup="true" aria-expanded="false">
+        <a class="dlink inline-block px1 py4 mb0 {% if link.active %}active{% endif %} js-open-dropdown-on-key color--header-text" href="{{ link.url }}">
+          <span class="navigation__top-level--hover">{{ link.title | escape }}</span>
+          {% render 'snip-icons',
+             wrapper: '.dropdown.has_sub_menu',
+             type: 'theme',
+             icon: 'down-carrot',
+             size: '5px',
+             classes: 'inactive-arrow toplevel mt0 mr0 mb0 ml1',
+             fill: 'var(--header-text)',
+             hover: 'var(--header-hover)' %}
+        </a>
+        {{ dropdown_menu }}
+      </li>
+    {% else %}
+      <li class="js-doubletap-to-go js-aria-expand" data-active-class="navigation__menuitem--active">
+        <a class="inline-block px1 py4 mb0 dlink {% if link.active %}active{% endif %} color--header-text" href="{{ link.url }}">
+          <span class="navigation__top-level--hover">{{ link.title | escape }}</span>
+        </a>
+      </li>
+    {% endif %}
+  {% endfor %}
+</ul>

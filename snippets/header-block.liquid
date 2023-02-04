@@ -1,0 +1,31 @@
+{% capture nav_logo %}
+  <article class="header-block__logo-wrapper {{ logo_width }} {{ nav_align }}">
+    <div class="site-logo header__logo-wrapper relative lh0 {{ logo_align }}">
+      {% if section.settings.logo != blank %}
+        <a class="header__img-logo inline-block lh0 mb0 shrink-wrap" href="{{ routes.root_url }}"><img src="{{ section.settings.logo | img_url: '800x' }}" loading="lazy" alt="{{ shop.name }}"></a>
+      {% else %}
+        <a class="header__text-logo inline-block v-center m0 color--header-text" href="{{ routes.root_url }}">{{ shop.name }}</a>
+      {% endif %}
+    </div>
+  </article>
+{% endcapture %}
+
+{% capture nav_full %}
+  <article class="header-block__nav-wrapper span-12 {{ nav_align }}">
+    <div class="navigation" role="navigation">
+      {% render 'header-drop-navigation' %}
+    </div>
+  </article>
+{% endcapture %}
+
+{% capture cart_links %}
+  <article class="header-block__cart-links-wrapper {{ cartlink_width }} v-center a-right">
+    <ul class="header__cart-links__wrapper cart-link-topbar-false inline-block mb0">
+      {% render 'header-cart-links', classes: "m0 p0", use_icons: use_icons, fill_color: 'var(--header-text)', hover_color: 'var(--header-hover)' %}
+    </ul>
+  </article>
+{% endcapture %}
+
+{{ nav_logo }}
+{{ cart_links }}
+{{ nav_full }}

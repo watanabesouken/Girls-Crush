@@ -1,0 +1,49 @@
+.gift-card-page .gift-card-image {
+  width: auto;
+  height: 310px;
+  border-radius: 10px;
+}
+
+.gift-card-page .gift-card-image p.amount {
+  font-size: 40px;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1;
+  letter-spacing: var(--main-spacing);
+  color: white;
+  position: absolute;
+  top: 25px;
+  right: 25px;
+}
+
+@media (max-width: 767px) {
+  .gift-card-page .gift-card-image {
+    width: 305px;
+    height: 180px;
+  }
+
+  .gift-card-page .gift-card-image p.amount {
+    font-size: 20px;
+  }
+
+  .gift-card-page .gift-card-image svg {
+    width: 50px;
+  }
+}
+
+.gift-card-page .gift-card-code {
+  font-size: 40px;
+  font-weight: 500;
+  font-stretch: normal;
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 767px) {
+  .gift-card-page .gift-card-code {
+    font-size: 30px;
+  }
+}
+
+.gift-card-page #qr-code img {
+  display: inline-block !important;
+}

@@ -1,0 +1,228 @@
+{% comment %} Product Rich Text logic {% endcomment %}
+{%- liquid
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+-%}
+
+{% comment %} Product Rich Text Template {% endcomment %}
+{%- if product.description != blank  -%}
+<div
+  class="global__section section-product-description product-description-{{ section.id }} {{ section_padding }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="product-description"
+  data-section-loaded="false">
+
+  <div class="grid__wrapper py9 cg0 edge">
+    {%- if section.settings.show_title -%}
+      {% render 'snip-headings', heading: product.title, align: section.settings.alignment, grid: 'span-12' %}
+    {%- endif -%}
+
+    <div class="span-12 auto {{ section.settings.alignment }} px3">
+      <div class="pages-content">
+        <div class="rte {{ section.settings.alignment }}">
+          {%- if product.description contains '[#' -%}
+            {{ product.description | split: '[#' | first }}
+          {%- else -%}
+            {{ product.description }}
+          {%- endif -%}
+        </div>
+      </div>
+    </div>
+  </div>
+  <style>
+    .section-product-description .rte,
+    .section-product-description .rte p:last-child {
+      margin: 0;
+    }
+    .section-product-description__section-heading {
+      margin-bottom: var(--space-5);
+    }
+    .product-description-{{ section.id }} h2 {
+      font-size: {{ section.settings.heading_size }}px;
+      line-height: calc(({{ section.settings.heading_size }}px * .375) + {{ section.settings.heading_size }}px);
+    }
+    .section-product-description .rte,
+    .product-description-{{ section.id }} p,
+    .product-description-{{ section.id }} a,
+    .product-description-{{ section.id }} span,
+    .product-description-{{ section.id }} .pages-content,
+    .product-description-{{ section.id }} .pages-content p,
+    .product-description-{{ section.id }} .pages-content a,
+    .product-description-{{ section.id }} .pages-content li,
+    .product-description-{{ section.id }} td {
+      font-size: {{ section.settings.text_size }}px !important;
+      line-height: calc(({{ section.settings.text_size }}px * .375) + {{ section.settings.text_size }}px);
+    }
+    @media (min-width: 768px) {
+      .product-description-{{ section.id }} .section-heading,
+      .product-description-{{ section.id }} .pages-content {
+        max-width: {{ section.settings.content_width }}%;
+        margin-left: auto;
+        margin-right: auto;
+      }
+    }
+    @media (max-width: 767px) {
+      .product-description-{{ section.id }} h2 {
+        font-size: calc({{ section.settings.heading_size }}px - ({{ section.settings.heading_size }}px * 0.15));
+        line-height: calc(({{ section.settings.heading_size }}px * .2) + {{ section.settings.heading_size }}px);
+      }
+      .section-product-description .rte,
+      .product-description-{{ section.id }} p,
+      .product-description-{{ section.id }} a,
+      .product-description-{{ section.id }} span,
+      .product-description-{{ section.id }} .pages-content,
+      .product-description-{{ section.id }} .pages-content p,
+      .product-description-{{ section.id }} .pages-content a,
+      .product-description-{{ section.id }} .pages-content li,
+      .product-description-{{ section.id }} td {
+        font-size: calc({{ section.settings.text_size }}px - ({{ section.settings.text_size }}px * 0.15)) !important;
+        line-height: calc(({{ section.settings.text_size }}px * .2) + {{ section.settings.text_size }}px) !important;
+      }
+    }
+    {% unless section.settings.color_scheme == 'none' %}
+      .product-description-{{ section.id }},
+      .product-description-{{ section.id }} .rte,
+      .product-description-{{ section.id }} h2,
+      .product-description-{{ section.id }} p,
+      .product-description-{{ section.id }} a,
+      .product-description-{{ section.id }} span,
+      .product-description-{{ section.id }} li,
+      .product-description-{{ section.id }} td {
+        color: var(--scheme-{{ section.settings.color_scheme }}-text) !important;
+      }
+      .product-description-{{ section.id }} tr {
+        border-color: var(--scheme-{{ section.settings.color_scheme }}-text) !important;
+      }
+      .product-description-{{ section.id }} .rte a:hover,
+      .product-description-{{ section.id }} a:hover {
+        color: var(--scheme-{{ section.settings.color_scheme }}-hover) !important;
+      }
+      .product-description-{{ section.id }} .grid__wrapper {
+        background-color: var(--scheme-{{ section.settings.color_scheme }}-bg) !important;
+      }
+    {% endunless %}
+  </style>
+</div>
+{%- endif -%}
+
+
+{% schema %}
+{
+  "name": "Description",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "Show title",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "heading_size",
+      "min": 12,
+      "max": 60,
+      "step": 1,
+      "unit": "px",
+      "label": "Heading size",
+      "default": 28
+    },
+    {
+      "type": "range",
+      "id": "text_size",
+      "min": 12,
+      "max": 30,
+      "step": 1,
+      "unit": "px",
+      "label": "Text size",
+      "default": 16
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Alignment",
+      "options": [
+        {
+          "value": "a-left",
+          "label": "Left"
+        },
+        {
+          "value": "a-center",
+          "label": "Center"
+        }
+      ],
+      "default": "a-center"
+    },
+    {
+      "type":      "range",
+      "id":        "content_width",
+      "min":       10,
+      "max":       100,
+      "step":      5,
+      "unit":      "%",
+      "label":     "Content width",
+      "default":   60
+    },
+    {
+      "type": "select",
+      "id": "section_padding",
+      "label": "Section spacing",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "both"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default":"2",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

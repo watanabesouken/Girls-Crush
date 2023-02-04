@@ -1,0 +1,178 @@
+{% comment %} Article Sidebar Template {% endcomment %}
+<aside
+  class="article-sidebar px6"
+  data-type="{{ section.type }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="article-template"
+  data-section-loaded="false">
+
+  <div class="span-4 auto">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {%- when 'sidebar_author' -%}
+          {%- if article.author != blank -%}
+            <div class="article__sidebar--author pb8 grid__wrapper edge" {{ block.shopify_attributes }}>
+              {% if block.settings.show_image and article.user.image %}
+                <div class="author__img span-3 sm-span-3 auto v-center">
+                  <img src="{{ article.user.image | img_url: '200x200' }}" alt="{{ article.author }}">
+                </div>
+              {% endif %}
+              {%- if block.settings.show_name or block.settings.show_bio -%}
+                <div class="author__text span-9 sm-span-9 auto v-center">
+                  {%- if block.settings.show_name -%}
+                    <p class="author__name mb2 h5">
+                      {{ 'blogs.article.by' | t }} {{ article.author }}
+                    </p>
+                  {%- endif -%}
+                  {%- if article.user.bio != blank and block.settings.show_bio -%}
+                    <p class="author__bio mb0">{{ article.user.bio }}</p>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        {%- when 'sidebar_recent' -%}
+          {% if blog.articles_count > 0 %}
+            <div class="article__sidebar--recent pb5" {{ block.shopify_attributes }}>
+              <h3>{{ 'blogs.article.recent_posts' | t }}</h3>
+              <ul>
+                {% for article in blog.articles %}
+                  <li class="mb3">
+                    {%- if article.image != blank -%}
+                      <div class="inline-block w30 v-center">
+                        {% render 'helper-image',
+                           type: article.image,
+                           sm_render: '100vw'
+                           md_render: 'calc(100vw * 0.33)',
+                           lg_render: 'calc(100vw * 0.33)' %}
+                      </div>
+                    {%- endif -%}
+                    <div class="{%- if article.image != blank -%}inline-block w70 pl3 v-center{%- endif -%}">
+                      <p class="mb2 h5">{{ article.title }}</p>
+                      <a class="article__rte--cta border-arrow-link py2 sm" href="{{ article.url }}">
+                        {{ 'blogs.article.read_more' | t }}
+                        {% render 'snip-icons',
+                           wrapper: '.article__rte--cta',
+                           type: 'theme',
+                           icon: 'arrow-right',
+                           size: '8px',
+                           classes: 'ml3 vib-center',
+                           fill: 'var(--text-color)',
+                           hover: 'var(--text-color)' %}
+                      </a>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+        {%- when 'sidebar_tags' -%}
+          {% if blog.all_tags.size > 0 %}
+            <div class="article__sidebar--tags pb6" {{ block.shopify_attributes }}>
+              <h3 class="mt4">{{ 'blogs.article.tags' | t }}</h3>
+              <ul>
+                {% for tag in blog.all_tags %}
+                  <li class="inline-block mb2">
+                    <a title="{{ tag }}" href="/blogs/{{ blog.handle }}/tagged/{{ tag | handleize }}">{{ tag }}</a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </div>
+          {% endif %}
+        {%- when 'sidebar_social' -%}
+          <div class="article__sidebar--social pb8" {{ block.shopify_attributes }}>
+            {% render 'snip-social-sharing',
+              share_title: article.title,
+              share_permalink: article.url,
+              share_image: article,
+              text_status: 'visually-hidden'
+            %}
+          </div>
+      {%- endcase -%}
+    {%- endfor -%}
+  </div>
+  <style>
+    @media (max-width: 767px) {
+      .article-sidebar--wrapper {
+        width: 100% !important;
+      }
+    }
+    .author__img img {
+      border-radius: 50%;
+    }
+    .article__sidebar--tags li a {
+      padding: var(--space-2);
+      border: 1px solid;
+      display: inline-block;
+      margin: 0;
+      width: auto;
+    }
+    .article__sidebar--tags li a:hover {
+      color: var(--text-color-light);
+      border-color: var(--text-color-light);
+    }
+
+  </style>
+</aside>
+
+{% schema %}
+{
+"name": "Article sidebar",
+"class": "article-sidebar--wrapper inline-block w30 v-start pt9",
+"settings":
+	[
+  ],
+  "blocks": [
+    {
+      "type": "sidebar_author",
+      "name": "Author",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "Update author details by editing staff profiles in the [Shopify admin.](/admin/settings/account)"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_name",
+          "label": "Show name",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_image",
+          "label": "Show image",
+          "default": true
+        },
+        {
+          "type": "checkbox",
+          "id": "show_bio",
+          "label": "Show bio",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "sidebar_tags",
+      "name": "Tag list",
+      "limit": 1,
+      "settings": [
+      ]
+    },
+    {
+      "type": "sidebar_recent",
+      "name": "Recent articles",
+      "limit": 1,
+      "settings": [
+      ]
+    },
+    {
+      "type": "sidebar_social",
+      "name": "Social share",
+      "limit": 1,
+      "settings": [
+      ]
+    }
+  ]
+}
+{% endschema %}

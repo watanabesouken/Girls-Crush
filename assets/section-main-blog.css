@@ -1,0 +1,95 @@
+.template-blog .blog-template__tags--tag a,
+.template-blog .blog-template__tags--clear a {
+  margin: 0;
+}
+
+.template-blog .blog-template__tags--tag a:hover {
+  text-decoration: underline;
+}
+
+.template-blog .blog-template__tags--label,
+.template-blog .blog-template__tags--clear {
+  text-transform: uppercase;
+}
+
+.template-blog .blog-template__tags--clear {
+  background-color: transparent;
+  transition: background-color .5s ease-in;
+}
+
+.template-blog .blog-template__tags--clear:hover {
+  background-color: var(--text-color);
+  color: var(--background);
+}
+
+.template-blog .blog-template__tags--clear:hover a {
+  color: var(--background);
+}
+
+.template-blog .blog-template__tags--clear:hover svg .hover-fill {
+  fill: var(--background);
+}
+
+.template-blog .blog-template__tags--label,
+.template-blog .blog-template__tags--tag,
+.template-blog .blog-template__tags--clear {
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.template-blog .article-loop__placeholder-img,
+.template-blog .article__img-wrapper {
+  width: 100%;
+}
+
+.template-blog .article__rte--text {
+  background-color: var(--background-accent);
+}
+
+.template-blog .article__rte--details p,
+.template-blog .article__rte--details a {
+  font-size: var(--font-size-sm);
+}
+
+.template-blog .article__rte--date,
+.template-blog .article__rte--author,
+.template-blog .article__rte--tags,
+.template-blog .article__rte--cta,
+.template-blog .article__rte--comments {
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+}
+
+.template-blog .article__rte--comments a:hover {
+  text-decoration: underline;
+}
+
+.template-blog .article__rte--cta {
+  text-transform: uppercase;
+  background-color: transparent;
+  transition: background-color .5s ease-in;
+}
+
+.template-blog .article__rte--cta:hover {
+  background-color: var(--text-color);
+  color: var(--background);
+}
+
+@media (min-width: 968px) {
+  .template-blog .article_wrapper--side-by-side a.article__img-wrapper:after {
+    position: absolute;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    content: "";
+    background-color: transparent;
+    border: 1px solid;
+    border-radius: 1px;
+    top: 12px;
+    right: 12px;
+  }
+}

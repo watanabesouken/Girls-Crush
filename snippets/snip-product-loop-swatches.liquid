@@ -1,0 +1,108 @@
+{% for option in product.options %}
+
+  {%- liquid
+    assign option_handle = option | handle
+    assign option_index = forloop.index0
+
+    assign is_color = false
+
+    assign values = ''
+
+    assign color_swatch_count = 0
+    assign size_swatch_count = 0
+  -%}
+
+  {% capture downcased_option %}{{ option | downcase }}{% endcapture %}
+  {%- if settings.show_collection_swatches -%}
+    {%- if downcased_option contains 'color' or downcased_option contains 'colour' -%}
+      <div class="product-loop__color-swatches py3 px4 sm-tpr-hide">
+        <div class="product-loop__swatch-label w30 inline-block">
+          <p class="mb0">{{ option | upcase }}</p>
+        </div>
+        <div class="product-loop__swatch-wrapper w50 inline-block">
+          <ul data-option-index="{{ option_index }}" class="product-loop__swatch-options {{ option_handle }}">
+            {% for variant in product.variants %}
+              {%- liquid
+                    assign variant_image_url = blank
+                    if variant.image
+                      assign variant_image_url =  variant.image | img_url: '100x'
+                    endif
+                    assign value = variant.options[option_index]
+                -%}
+              {% capture wrapped_value %},{{ value }},{% endcapture %}
+              {% unless values contains wrapped_value %}
+              <li data-option-title="{{ value | escape }}" class="product-loop__swatch color {{ value | handle }} {% unless variant.available %}soldout{% endunless %}">
+                {%- unless hide_link == true -%}
+                  <a title="{{ value | escape }}" href="{{ variant.url | within: collection }}">
+                {%- endunless -%}
+                  {% liquid
+                    assign swatch_img = null
+                    assign swatch_color_name = value | handle | append: '.png'
+
+                    if images[swatch_color_name] != blank
+                      assign swatch_img = swatch_color_name | file_url
+                    endif
+
+                  %}
+                  <span style="background-color: {{ value | split: ' ' | last | handle }}; background-image: url({% if color_swatch_style == 'variant-image' %}{{ variant_image_url }}{% elsif swatch_img != null %}{{ swatch_img }}{% endif %});"></span>
+                {%- unless hide_link == true -%}
+                 </a>
+                {%- endunless -%}
+              </li>
+              {% capture values %}{{ values }}{{ wrapped_value }}{% endcapture %}
+              {% assign color_swatch_count = color_swatch_count | plus: 1 %}
+              {% endunless %}
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="product-loop__swatch-count w20 inline-block">
+          {%- liquid
+            assign more_colors = color_swatch_count | minus: 5
+          -%}
+          {%- if color_swatch_count > 5 -%}<p class="mb0">{{ more_colors }}+ {{ option }}(s)</p>{%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- if downcased_option contains 'size' and settings.show_product_sizes -%}
+    <div class="product-loop__color-swatches py3 px4 sm-tpr-hide">
+      <div class="product-loop__swatch-label w30 inline-block">
+        <p class="mb0">{{ option | upcase }}</p>
+      </div>
+      <div class="product-loop__swatch-wrapper w50 inline-block">
+        <ul data-option-index="{{ option_index }}" class="product-loop__swatch-options {{ option_handle }}">
+          {% for variant in product.variants %}
+            {%- liquid
+                  assign variant_image_url = blank
+                  if variant.image
+                    assign variant_image_url =  variant.image | img_url: '100x'
+                  endif
+                  assign value = variant.options[option_index]
+              -%}
+            {% capture wrapped_value %},{{ value }},{% endcapture %}
+            {% unless values contains wrapped_value %}
+            <li data-option-title="{{ value | escape }}" class="product-loop__swatch size {{ value | handle }} {% unless variant.available %}soldout{% endunless %}">
+              {%- unless hide_link == true -%}
+                 <a title="{{ value | escape }}" href="{{ variant.url | within: collection }}">
+              {%- endunless -%}
+                {{ value | upcase }}
+              {%- unless hide_link == true -%}
+                 </a>
+              {%- endunless -%}
+            </li>
+            {% capture values %}{{ values }}{{ wrapped_value }}{% endcapture %}
+            {% assign size_swatch_count = size_swatch_count | plus: 1 %}
+            {% endunless %}
+          {% endfor %}
+        </ul>
+      </div>
+      <div class="product-loop__swatch-count w20 inline-block">
+        {%- liquid
+          assign more_swatches = size_swatch_count | minus: 4
+        -%}
+        {%- if size_swatch_count > 4 -%}<p class="mb0">{{ more_swatches }}+ {{ option }}(s)</p>{%- endif -%}
+      </div>
+    </div>
+  {%- endif -%}
+{% endfor %}

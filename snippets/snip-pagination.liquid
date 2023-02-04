@@ -1,0 +1,49 @@
+<link rel="stylesheet" href="{{ 'component-pagination.css' | asset_url }}" media="print" onload="this.media='all'">
+<noscript>{{ 'component-pagination.css' | asset_url | stylesheet_tag }}</noscript>
+
+<div class="pagination__wrapper pagination mt11">
+  <div class="grid__wrapper">
+    <div class="span-12 sm-span-12 auto v-center a-center">
+      <div class="pagination__wrapper--inner inline-block">
+        {% if paginate.previous %}
+          <a class="paginate-buttons mb0 px2 sm-px1 inline-block" href="{{ paginate.previous.url }}" aria-label="Previous">
+            {{ 'collections.general.prev' | t }}
+          </a>
+        {% else %}
+          <span class="paginate-buttons disabled mb0 px2 sm-px1 inline-block">
+            {{ 'collections.general.prev' | t }}
+           </span>
+        {% endif%}
+
+        {% for part in paginate.parts %}
+          {%- liquid
+            if forloop.first
+              assign first = 'first-link'
+            else
+              assign first = ''
+            endif
+          -%}
+          {% if part.is_link %}
+            <a class="page-number mb0 inline-block {{ first }}" href="{{ part.url }}">{{ part.title }}</a>
+          {% else %}
+            {% if part.title == '&hellip;' %}
+              <span class="page-number mb0  inline-block {{ first }}">{{ part.title }}</span>
+            {% else %}
+              <span class="page-number current mb0 inline-block {{ first }}">{{ part.title }}</span>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+
+        {% if paginate.next %}
+          <a class="paginate-buttons mb0 px2 sm-px1 inline-block" href="{{ paginate.next.url }}" aria-label="Next">
+            {{ 'collections.general.next' | t }}
+          </a>
+        {% else %}
+          <span class="paginate-buttons disabled mb0 px2 sm-px1 inline-block">
+            {{ 'collections.general.next' | t }}
+          </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

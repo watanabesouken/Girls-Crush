@@ -1,0 +1,53 @@
+<div class="span-3 sm-span-2 auto v-center a-left">
+  <a class="product-breadcrumb__nav--link mb0 pt2 pb2 {% unless collection.previous_product %}link--disabled{% endunless %}" href="{{ collection.previous_product.url }}">
+    {% render 'snip-icons',
+       wrapper: '.product-breadcrumb__nav--link',
+       type: 'theme',
+       icon: 'arrow-left',
+       size: '10px',
+       classes: 'mr3 vib-center',
+       fill: 'var(--text-color)',
+       hover: 'var(--text-color)' %}
+    <span class="nav--link-text vib-center sm-hide">{{ 'products.product.prev' | t }}</span>
+  </a>
+</div>
+
+<div class="span-6 sm-span-8 auto v-center a-center border-right border-left">
+  <a class="product-breadcrumb__collection--link mb0 pt2 pb2" href="{{ collection.url }}">
+    {{ 'products.product.back_to_html' | t: collection: collection.title }}
+  </a>
+</div>
+
+<div class="span-3 sm-span-2 auto v-center a-right">
+  <a class="product-breadcrumb__nav--link mb0 pt2 pb2 {% unless collection.next_product %}link--disabled{% endunless %}" href="{{ collection.next_product.url }}">
+    <span class="nav--link-text vib-center sm-hide">{{ 'products.product.next' | t }}</span>
+    {% render 'snip-icons',
+       wrapper: '.product-breadcrumb__nav--link',
+       type: 'theme',
+       icon: 'arrow-right',
+       size: '10px',
+       classes: 'ml3 vib-center',
+       fill: 'var(--text-color)',
+       hover: 'var(--text-color)' %}
+  </a>
+</div>
+<style>
+  .product-breadcrumb__nav--link.link--disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  .product-breadcrumb__nav--link:not(.link--disabled):hover span {
+    text-decoration: underline;
+  }
+  .product-breadcrumb__collection--link:hover {
+    text-decoration: underline;
+  }
+  .product-breadcrumb__nav a,
+  .product-breadcrumb__nav p,
+  .product-breadcrumb__nav span,
+  .product-form__breadcrumb-nav a,
+  .product-form__breadcrumb-nav p,
+  .product-form__breadcrumb-nav span {
+    font-size: var(--font-size-sm);
+  }
+</style>

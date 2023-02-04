@@ -1,0 +1,39 @@
+@media (max-width: 767px) {
+  :root {
+    --iwt-border-padding: 12px;
+  }
+}
+@media (min-width: 768px) {
+  :root {
+    --iwt-border-padding: 24px;
+  }
+  .section-image-with-text .info__inner-wrapper {
+    position:absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+.section-image-with-text .background-image {
+  height: 100%;
+  width: 100%;
+  background-size: cover;
+  background-position: center center;
+  position: relative;
+}
+.section-image-with-text .background-image:after {
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  content: "";
+  background-color: transparent;
+  border: 1px solid;
+  border-radius: 1px;
+  top: var(--iwt-border-padding);
+}
+.section-image-with-text .image-with-text__zoom-btn {
+  position: absolute;
+}
+.section-image-with-text .image-with-text__zoom-btn svg {
+  pointer-events: none;
+}

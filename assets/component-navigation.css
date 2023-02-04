@@ -1,0 +1,173 @@
+/* Main Navigation Basic Three Level Dropdown */
+ul.header__navigation li.dropdown ul.submenu {
+  display: none;
+  z-index: 25;
+  min-width: 240px;
+  padding: var(--space-1) 0;
+  border-top: 0;
+  box-shadow: 1px 2px 2px 1px rgba(0, 0, 0, .1);
+}
+
+ul.header__navigation li.dropdown ul.submenu .inactive-arrow {
+  position: absolute;
+  right: var(--space-5);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+ul.header__navigation li.dropdown ul.submenu li {
+  min-width: 180px;
+  text-align: left;
+  display: block;
+  clear: left;
+  white-space: nowrap;
+  line-height: 1.75;
+  padding: 0;
+  position: relative;
+}
+
+ul.header__navigation li.dropdown ul.submenu li a {
+  line-height: inherit !important;
+  width: 100%;
+}
+
+ul.header__navigation li.dropdown ul.submenu .nested {
+  display: none;
+  position: absolute;
+  left: 100%;
+  top: -6px;
+  box-shadow: 1px 2px 2px 1px rgba(0, 0, 0, .1);
+}
+
+ul.header__navigation li.dropdown ul.submenu li.nest:hover>ul.nested {
+  display: block;
+}
+
+ul.header__navigation li.dropdown:hover ul.submenu {
+  display: block;
+}
+
+/* Main Navigation Mega Drop Mega Menu */
+#drop-mega-menu {
+  display: none;
+  position: absolute;
+  left: 0;
+  width: 100%;
+  z-index: 20;
+  overflow: hidden;
+  opacity: 0;
+  background-color: var(--background);
+  -webkit-box-shadow: -1px 9px 4px -4px rgba(0, 0, 0, .05);
+  -moz-box-shadow: -1px 9px 4px -4px rgba(0, 0, 0, .05);
+  box-shadow: -1px 9px 4px -4px rgba(0, 0, 0, .05);
+  animation-name: fadeOutOpacity;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in;
+  animation-duration: 0.4s;
+  border-top: 1px solid var(--dotted-color);
+}
+
+#drop-mega-menu .left {
+  padding: var(--space-7) 0;
+  height: 100%;
+}
+
+#drop-mega-menu .left ul>li {
+  display: block;
+}
+
+#drop-mega-menu .left ul>li a {
+  font-size: var(--nav-size);
+  font-style: var(--nav-style);
+  font-weight: var(--nav-weight);
+  letter-spacing: var(--nav-spacing);
+  line-height: 1.57;
+  text-transform: uppercase;
+  text-align: left;
+  display: inline-block;
+  width: 100%;
+}
+
+#drop-mega-menu .left ul.sub-menu>li a {
+  font-size: var(--nav-size);
+  font-style: var(--nav-style);
+  font-weight: var(--nav-weight);
+  letter-spacing: var(--nav-spacing);
+  line-height: 1.4;
+  text-transform: capitalize;
+  width: 100%;
+}
+
+#drop-mega-menu .right {
+  background-color: var(--background);
+  padding: var(--space-7) 0;
+}
+
+#drop-mega-menu .mega-dropdown__image-wrapper img {
+  -webkit-transform: scale(1) translateY(-50%);
+  transform: scale(1) translateY(-50%);
+  -webkit-transition: -webkit-transform 7s cubic-bezier(0.25, 0.5, 0.8, 0.65);
+  transition: -webkit-transform 7s cubic-bezier(0.25, 0.5, 0.8, 0.65);
+  transition: transform 7s cubic-bezier(0.25, 0.5, 0.8, 0.65);
+  height: 290px;
+  object-fit: cover;
+  position: absolute;
+  top: 50%;
+}
+
+#drop-mega-menu.header__dropdown__collections .mega-dropdown__image-wrapper img {
+  height: 360px;
+}
+
+#drop-mega-menu .mega-dropdown__image-wrapper img:hover {
+  -webkit-transform: scale(1.2) translateY(-50%);
+  transform: scale(1.2) translateY(-50%);
+}
+
+#drop-mega-menu .mega-dropdown__image-title {
+  font-size: var(--font-size);
+  line-height: 1.57;
+  letter-spacing: 1px;
+}
+
+.dropdown.has_sub_menu:hover #drop-mega-menu, .dropdown.has_sub_menu:hover .submenu {
+  display: block;
+  opacity: 1;
+  animation-name: fadeInOpacity;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in;
+  animation-duration: 0.4s;
+}
+
+.navigation__menuitem--active>#drop-mega-menu, .navigation__menuitem--active>.submenu, .navigation__menuitem--active>.nested {
+  display: block !important;
+  opacity: 1;
+  animation-name: fadeInOpacity;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in;
+  animation-duration: 0.4s;
+}
+
+.js-menuitem-with-nested-dropdown:hover>.nested.dropdown--edge {
+  left: initial !important;
+  right: calc(100%) !important;
+}
+
+.js-menuitem-with-nested-dropdown:hover>.submenu.dropdown--edge {
+  left: auto !important;
+  right: 0 !important;
+}
+
+.dropdown__menuitem--active>.nested {
+  display: block !important;
+  opacity: 1;
+  animation-name: fadeInOpacity;
+  animation-iteration-count: 1;
+  animation-timing-function: ease-in;
+  animation-duration: 0.4s;
+}
+
+.dropdown__menuitem--active.dropdown--edge {
+  left: initial !important;
+  right: calc(100%) !important;
+}

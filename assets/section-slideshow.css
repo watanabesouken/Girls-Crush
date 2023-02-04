@@ -1,0 +1,128 @@
+.section-slideshow[data-section-loaded="false"] .slideshow__slide,
+.no-js .section-slideshow .slideshow__slide {
+  opacity: 1 !important;
+  width: 100%;
+}
+.animation-text--active [data-section-loaded] .slideshow__slide .slide-animate {
+  opacity: 0;
+  transition: opacity 0.5s ease-in, transform 2s ease;
+}
+.animation-text--active [data-section-loaded] .slideshow__slide .slide-animate.delay--1 {
+  transition-delay: 1s;
+}
+.animation-text--active [data-section-loaded] .slideshow__slide .slide-animate.delay--2 {
+  transition-delay: 2s;
+}
+.animation-text--active [data-section-loaded] .slideshow__slide .slide-animate.delay--3 {
+  transition-delay: 3s;
+}
+.animation-text--active [data-section-loaded="true"] .slideshow__slide.is-selected .slide-animate,
+.no-js .animation-text--active [data-section-loaded="false"] .slideshow__slide.is-selected .slide-animate,
+.animation-text--active .section--reloaded [data-section-loaded="false"] .slideshow__slide.is-selected .slide-animate {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(0)
+}
+
+.section-slideshow .slideshow {
+  border: 0 !important;
+  width: 100%;
+}
+
+.section-slideshow .slideshow__slide, .section-slideshow .slideshow__slide-desktop {
+  width: 100%;
+}
+
+.section-slideshow .slideshow__slide-desktop.overlay:after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.25);
+  content: "";
+}
+
+.section-slideshow .slideshow__slide {
+  opacity: 0 !important;
+  transition: opacity 1s ease !important;
+}
+
+.section-slideshow .slideshow__slide.is-selected {
+  opacity: 1 !important;
+}
+
+@media (min-width: 1024px) {
+  .section-slideshow .slideshow.flickity__section .flickity-page-dots {
+    text-align: right;
+    bottom: 15px;
+    right: 15px;
+  }
+}
+
+.section-slideshow .slideshow__caption {
+  position: absolute;
+  width: fit-content;
+  text-align: center;
+}
+
+.section-slideshow .slideshow__caption p {
+  line-height: initial;
+}
+
+.section-slideshow .slideshow__caption-wrapper {
+  display: inline-block;
+  padding: 20px;
+}
+
+.section-slideshow .slideshow__btn-wrapper {
+  display: inline-block;
+  margin-top: 30px;
+}
+
+.section-slideshow .slideshow__btn-wrapper a {
+  display: inline-block;
+  -webkit-transition: background 0.3s ease, color 0.3s ease;
+  -moz-transition: background 0.3s ease, color 0.3s ease;
+  -o-transition: background 0.3s ease, color 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+@media (max-width: 767px) {
+  .section-slideshow .slideshow__caption-wrapper {
+    width: 100%;
+  }
+
+  .section-slideshow .slideshow__slide-desktop.overlay:after {
+    height: 400px;
+  }
+
+  .section-slideshow .flickity-viewport {
+    margin-bottom: 35px;
+  }
+
+  .section-slideshow .flickity__section .flickity-button {
+    width: 30px;
+    height: 30px;
+  }
+  .slideshow__caption-wrapper {
+    text-align: center !important;
+  }
+}
+
+.section-slideshow .main-carousel.v-center .flickity-slider {
+  display: flex;
+  align-items: center;
+}
+
+.section-slideshow .flickity-button.previous {
+  right: unset;
+  left: 10px;
+  top: 50%;
+}
+
+.section-slideshow .flickity-button.next {
+  right: 10px;
+  left: unset;
+  top: 50%;
+}

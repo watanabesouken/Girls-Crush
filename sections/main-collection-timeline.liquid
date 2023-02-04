@@ -1,0 +1,252 @@
+{% comment %} Collection Timeline Page Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-main-collection.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-main-collection.css' | asset_url }}"></noscript>
+
+{% comment %} Collection Timeline Page Logic {% endcomment %}
+{%- liquid
+
+  assign page_limit = section.settings.items_shown
+  assign coming_soon = false
+  assign flash_sale = false
+  assign launch_date = ''
+  assign sale_date = ''
+
+  if collection.metafields.my_fields.launch != blank
+    assign launch_date = collection.metafields.my_fields.launch.value | date: "%s"
+  endif
+
+  if collection.metafields.my_fields.sale_end != blank
+    assign sale_date = collection.metafields.my_fields.sale_end.value | date: "%s"
+  endif
+
+  assign date_now = "now" | date: "%s"
+
+  if launch_date != blank
+    assign public_launch_date = launch_date | date: "%b %d, %y"
+    if launch_date > date_now
+      assign coming_soon = true
+    endif
+  endif
+
+  if sale_date != blank
+    if sale_date > date_now
+      assign flash_sale = true
+    endif
+  endif
+
+-%}
+
+{% comment %} Collection Timeline Page Template {% endcomment %}
+<section
+  id="collection-page"
+  class="collection__page--wrapper collection-template collection-{{ section.id }} mt6 pb9 no-section-animation"
+  data-section-id="{{ section.id }}"
+  data-section-type="collection"
+  data-asset-url="{{ 'section-main-collection.js' | asset_url }}"
+  data-collection-handle="{{ collection.handle }}">
+
+  {% paginate collection.products by page_limit %}
+    <div id="CollectionProductGrid" class="grid__wrapper">
+
+      <div class="collection__page--description collection-description span-8 push-2 auto mt2 pb2 a-center">
+        <div class="rte">
+          {{ collection.description | split: '[#' | first | remove: "[banner]" }}
+        </div>
+      </div>
+
+      {%- if collection.products.size >= 1 -%}
+        <div class="collection__page-timeline__wrapper span-12 auto border-top border-bottom border-right">
+          {%- for product in collection.products -%}
+            {%- liquid
+              assign call_to_action = 'products.product.call_to_action' | t
+              assign coming_soon = false
+              assign disabled = ''
+              assign date_now = "now" | date: "%s"
+              assign launch_date = ''
+              assign launch_timestamp = ''
+
+              for collection in product.collections
+                if collection.metafields.my_fields.launch != blank
+                 assign launch_date = collection.metafields.my_fields.launch.value | date: "%s"
+                 assign launch_timestamp = launch_date | date: "%s"
+                 break
+                endif
+              endfor
+
+              if product.metafields.my_fields.launch != blank
+                assign launch_date = product.metafields.my_fields.launch.value | date: "%s"
+                assign launch_timestamp = launch_date | date: "%s"
+              endif
+
+              if launch_date != blank
+                assign visible_date = launch_date | date: "%b %d, %y"
+
+                if launch_date > date_now
+                  assign coming_soon = true
+                  assign date_text = 'general.sections.countdown.available_html' | t: date: visible_date
+                  assign call_to_action = 'general.sections.countdown.notification_submit_long' | t
+                else
+                 assign date_text = 'general.sections.countdown.launched_html' | t: date: visible_date
+                 if product.available
+                  assign call_to_action = 'collections.general.view_product_html' | t
+                 else
+                   assign call_to_action = 'products.product.sold_out' | t
+                 endif
+                endif
+              else
+                assign visible_date = product.created_at | date: "%b %d, %y"
+                assign date_text = 'general.sections.countdown.launched_html' | t: date: visible_date
+                if product.available
+                 assign call_to_action = 'collections.general.view_product_html' | t
+                else
+                  assign disabled = 'disabled'
+                  assign call_to_action = 'products.product.sold_out' | t
+                endif
+              endif
+            -%}
+            {% capture timeline_info %}
+              <article class="collection__page-timeline__info span-5 sm-span-11 auto v-center px8 py4 sm-px4">
+                {%- if product.vendor != blank -%}
+                  
+                {%- endif -%}
+                <h2>{{ product.title }}</h2>
+                {% assign description = product.description | strip_html %}
+                <!-- <div class="product__block--description rte pt2 mb2">
+                  {{ description | truncatewords: 25 }}
+                  {%- if coming_soon -%}
+                    <a class="inline mb0 ml2" href="{{ product.url | within: collection }}">{{ 'collections.general.view_product_html' | t }}</a>
+                  {%- endif -%}
+                </div> -->
+                <a class="product-header__cta-button button btn-outlined {{ disabled }} mt6 {% if coming_soon %}js-notify-form-trigger{% endif %}" href="{{ product.url | within: collection }}">
+                  アイテムを見る
+                </a>
+                {%- if coming_soon -%}
+                  <div class="product-form__notify-form js-notify-form">
+                    {%- render 'notify-form', product: product, customer: customer -%}
+                  </div>
+                {%- endif -%}
+              </article>
+            {% endcapture %}
+
+            {% capture timeline_image %}
+              <article class="collection__page-timeline__image span-6 sm-span-12 auto v-center relative">
+                {%- if coming_soon -%}
+                  <div class="product__section-countdown span-12 auto v-start a-center px2 z2 grid__wrapper edge absolute-center" data-launch-date="{{ launch_timestamp }}" data-product-countdown>
+                    <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center">
+                      <p class="collection-countdown__time h1" data-launch-days>00</p>
+                      <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.days' | t }}</p>
+                      <span class="collection-countdown__colon-divider h1">:</span>
+                    </div>
+                    <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center">
+                      <p class="collection-countdown__time h1" data-launch-hours>00</p>
+                      <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.hours' | t }}</p>
+                      <span class="collection-countdown__colon-divider h1">:</span>
+                    </div>
+                    <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center">
+                      <p class="collection-countdown__time h1" data-launch-mins>00</p>
+                      <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.mins' | t }}</p>
+                      <span class="collection-countdown__colon-divider h1">:</span>
+                    </div>
+                    <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center">
+                      <p class="collection-countdown__time h1" data-launch-secs>00</p>
+                      <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.secs' | t }}</p>
+                    </div>
+                  </div>
+                  {%- if section.settings.overlay_color != 'rgba(0,0,0,0)' -%}
+                    <div class="collection__page-timeline__image-overlay"></div>
+                  {%- endif -%}
+                {%- endif -%}
+                {% render 'helper-image',
+                   type: product.featured_media.preview_image,
+                   sm_render: '100vw'
+                   md_render: 'calc(100vw / 2)',
+                   lg_render: 'calc(1600px / 2 )' %}
+              </article>
+            {% endcapture %}
+            <div class="collection__page-timeline__item-wrapper grid__wrapper edge cg0 sm-cg0 rg0 sm-rg0">
+              <article class="collection__page-timeline__date span-1 sm-span-1 auto border-left border-right v-center">
+                <p>{{ date_text }}</p>
+              </article>
+
+              {% cycle '', timeline_info %}
+
+              {{ timeline_image }}
+
+              {% cycle timeline_info, '' %}
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- else -%}
+       <div class="collection collection--empty span-12 relative" id="main-collection-product-grid" data-id="{{ section.id }}">
+        {%- liquid
+
+          if coming_soon
+            assign msg_heading = 'collections.general.coming_soon' | t
+            assign msg_text = 'collections.general.coming_msg_html' | t: date: public_launch_date
+          else
+            assign msg_heading = 'collections.general.empty' | t
+            assign msg_text = 'collections.general.no_matches' | t
+          endif
+
+        -%}
+
+          <div class="py10 a-center">
+            <h2>{{ msg_heading  }}</h2>
+            <p>{{ msg_text }}</p>
+            <a class="button btn-outlined" href="{{ routes.collections_url }}">{{ 'collections.general.all_collections' | t }}</a>
+          </div>
+        </div>
+      {%- endif -%}
+   </div>
+   {% unless collection.products_count <= page_limit %}
+     {% render 'snip-pagination', paginate: paginate %}
+   {% endunless %}
+  {% endpaginate %}
+  <style>
+    {%- if section.settings.overlay_color != 'rgba(0,0,0,0)' -%}
+      .collection-{{ section.id }} .collection__page-timeline__image-overlay {
+        box-shadow: inset 0 0 0 2000px {{ section.settings.overlay_color | color_modify: 'alpha', 0.30 }};
+        width: 100%;
+        height: 100%;
+        position: absolute;
+      }
+    {%- endif -%}
+    .collection-{{ section.id }} .product__section-countdown p,
+    .collection-{{ section.id }} .product__section-countdown span {
+      color: {{ section.settings.text_color }};
+    }
+  </style>
+</section>
+
+{% schema %}
+{
+  "name": "Collection timeline",
+  "max_blocks": 10,
+  "settings":[
+    {
+      "type": "range",
+      "id": "items_shown",
+      "min": 2,
+      "max": 30,
+      "step": 1,
+      "label": "Items per page",
+      "default": 10
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "Product image overlay",
+      "default": "#000"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Product image text",
+      "default": "#FFF"
+    }
+  ],
+  "blocks":[
+
+  ]
+}
+{% endschema %}

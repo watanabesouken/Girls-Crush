@@ -1,0 +1,30 @@
+/* Pricing */
+.price {
+  font-size: var(--font-size);
+}
+
+.price--on-sale .price-item--regular {
+  text-decoration: line-through;
+}
+
+/* Hide sale and unit price on load */
+.price-item--sale,
+.price-item--unit,
+.price__badge--sale,
+.price__badge--sold-out {
+  display: none;
+}
+
+/* Show if on sale or unit available */
+.price--on-sale .price-item--sale,
+.price--on-sale .price__badge--sale,
+.price--sold-out .price__badge--sold-out,
+.price--unit-available .price-item--unit {
+  display: inline-block !important;
+}
+
+.product__add-inner-container .price__badges,
+.product-top .product__add-inner-container .product__price-container,
+.featured-product .product_page__price-wrapper  .product__price-container {
+  display: none !important;
+}

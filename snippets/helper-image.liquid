@@ -1,0 +1,63 @@
+{% if type.size > 1 %}
+{% assign image_box_ratio = type.height | append: ".0" | times: 1 | divided_by: type.width | times: 100 | append: "%" %}
+
+{%- capture lazy_w_fallback -%}
+  <img class="lazy" data-srcset="{%- if type.width >= 180 -%}{{ type | img_url: '180x' }} 180w,{%- endif -%}
+   {%- if type.width >= 360 -%}{{ type | img_url: '360x' }} 360w,{%- endif -%}
+   {%- if type.width >= 540 -%}{{ type | img_url: '540x' }} 540w,{%- endif -%}
+   {%- if type.width >= 720 -%}{{ type | img_url: '720x' }} 720w,{%- endif -%}
+   {%- if type.width >= 780 -%}{{ type | img_url: '780x' }} 780w,{%- endif -%}
+   {%- if type.width >= 900 -%}{{ type | img_url: '900x' }} 900w,{%- endif -%}
+   {%- if type.width >= 1080 -%}{{ type | img_url: '1080x' }} 1080w,{%- endif -%}
+   {%- if type.width >= 1220 -%}{{ type | img_url: '1220x' }} 1220w,{%- endif -%}
+   {%- if type.width >= 1520 -%}{{ type | img_url: '1520x' }} 1520w,{%- endif -%}
+   {%- if type.width >= 1920 -%}{{ type | img_url: '1920x' }} 1920w{%- endif -%}"
+   data-src="{{ type | img_url: '540x' }}"
+   data-sizes="(min-width: 1601px) {{ lg_render }}, (min-width: 768px) and (max-width: 1600px) {{ md_render }}, (max-width: 767px) {{ sm_render }}, 900px"
+   {%- if img_width != blank -%}
+    width="{{ img_width }}"
+   {%- else -%}
+    width="{{ type.width }}"
+   {%- endif -%}
+   {%- if img_height != blank -%}
+    height="{{ img_height }}"
+   {%- else -%}
+    height="{{ type.height }}"
+   {%- endif -%}
+   alt="{{ type.alt | escape }}">
+{%- endcapture -%}
+
+{%- capture native_lazy -%}
+  <img srcset="{%- if type.width >= 180 -%}{{ type | img_url: '180x' }} 180w,{%- endif -%}
+   {%- if type.width >= 360 -%}{{ type | img_url: '360x' }} 360w,{%- endif -%}
+   {%- if type.width >= 540 -%}{{ type | img_url: '540x' }} 540w,{%- endif -%}
+   {%- if type.width >= 720 -%}{{ type | img_url: '720x' }} 720w,{%- endif -%}
+   {%- if type.width >= 780 -%}{{ type | img_url: '780x' }} 780w,{%- endif -%}
+   {%- if type.width >= 900 -%}{{ type | img_url: '900x' }} 900w,{%- endif -%}
+   {%- if type.width >= 1080 -%}{{ type | img_url: '1080x' }} 1080w,{%- endif -%}
+   {%- if type.width >= 1220 -%}{{ type | img_url: '1220x' }} 1220w,{%- endif -%}
+   {%- if type.width >= 1520 -%}{{ type | img_url: '1520x' }} 1520w,{%- endif -%}
+   {%- if type.width >= 1920 -%}{{ type | img_url: '1920x' }} 1920w{%- endif -%}"
+   src="{{ type | img_url: '540x' }}"
+   sizes="(min-width: 1601px) {{ lg_render }}, (min-width: 768px) and (max-width: 1600px) {{ md_render }}, (max-width: 767px) {{ sm_render }}, 900px"
+   {%- if img_width != blank -%}
+    width="{{ img_width }}"
+   {%- else -%}
+    width="{{ type.width }}"
+   {%- endif -%}
+   {%- if img_height != blank -%}
+    height="{{ img_height }}"
+   {%- else -%}
+    height="{{ type.height }}"
+   {%- endif -%}
+   alt="{{ type.alt | escape }}"
+   loading="lazy"
+{%- endcapture -%}
+
+<div class="box-ratio" style="padding-bottom: {{ image_box_ratio }};">
+  {{ lazy_w_fallback }}
+  <noscript>
+    {{ native_lazy }}
+  </noscript>
+</div>
+{% endif %}

@@ -1,0 +1,205 @@
+{% comment %}Collection Spread Assets {% endcomment %}
+<link rel="preload" href="{{ 'component-product-grid.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'component-product-grid.css' | asset_url }}"></noscript>
+
+{% comment %}Collection Spread Logic {% endcomment %}
+{%- liquid
+
+  case section.settings.items_per_row
+  when 5
+    assign wrapper_class = 'wrapper-fifths'
+    assign grid_width = 'span-3 md-span-4 auto'
+  when 4
+    assign grid_width = 'span-3 md-span-4 auto'
+  when 3
+    assign grid_width = 'span-4 auto'
+  when 2
+    assign grid_width = 'span-6 auto'
+  when 1
+    assign grid_width = 'span-12'
+  endcase
+
+  if section.settings.mobile_items_per_row
+    assign mobile_items_per_row = 'sm-span-6'
+  else
+    assign mobile_items_per_row = 'sm-span-12'
+  endif
+
+  assign collection = collections[section.settings.collection]
+  assign prod_limit = section.settings.items_per_page
+
+-%}
+
+{% comment %}Collection Spread Template {% endcomment %}
+<section
+  class="section-collection-spread collection-spread-{{ section.id }} mt4 pb9"
+  data-section-id="{{ section.id }}"
+  data-section-type="collection-spread"
+  data-section-loaded="false">
+
+  <div class="grid__wrapper cg5 rg8">
+    <div class="span-12 auto">
+      <div class="collection-spread__img-wrapper relative">
+        {%- if section.settings.overlay_color != 'rgba(0,0,0,0)' -%}
+          <div class="collection-spread__item-overlay"></div>
+        {%- endif -%}
+        <div class="collection-spread__caption-wrapper absolute-center">
+          <h2 class="collection-spread__caption-title animate--text">
+            {% if collection != blank %}
+              {{ collection.title }}
+            {% else %}
+              Collection Title
+            {% endif %}
+          </h2>
+          <a class="collection-spread__caption-link mb0 mt4 animate--text delay--1" href="{{ collection.url }}">
+            {{ 'collections.general.shop_all' | t }}
+            {% render 'snip-icons',
+               wrapper: '.collection-loop__collection-link',
+               type: 'theme',
+               icon: 'arrow-right',
+               size: '8px',
+               classes: 'ml3 vib-center',
+               fill: 'var(--background)',
+               hover: 'var(--background)' %}
+          </a>
+        </div>
+        {%- if section.settings.collection_image != blank -%}
+          {% render 'helper-image',
+             type: section.settings.collection_image,
+             sm_render: '100vw'
+             md_render: '100vw',
+             lg_render: '100vw' %}
+        {%- elsif collection.image != blank -%}
+          {% render 'helper-image',
+             type: collection.image,
+             sm_render: '100vw'
+             md_render: '100vw',
+             lg_render: '100vw' %}
+        {%- elsif collection.products.first.featured_media != blank -%}
+         {% render 'helper-image',
+            type: collection.products.first.featured_media,
+            sm_render: '100vw'
+            md_render: '100vw',
+            lg_render: '100vw' %}
+        {%- endif -%}
+      </div>
+    </div>
+    <div class="collection-spread__wrapper--loop span-12">
+      <div class="grid__wrapper edge cg6 rg6 {{ wrapper_class }}">
+        {% if collection != blank %}
+          {% for product in collection.products limit: prod_limit %}
+            {% render 'product-loop',
+              collection: collection,
+              product: product,
+              product_info_align: settings.product_grid_alignment,
+              grid_items: section.settings.items_per_row,
+              items_per_row: grid_width,
+              featured_collection: false,
+              mobile_items_per_row: mobile_items_per_row %}
+          {% endfor %}
+        {% else %}
+          {% for i in (1..prod_limit) %}
+            {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+            {% assign placeholder = 'product-' | append: current %}
+            {% render 'onboard-product-loop',
+              product_info_align: settings.product_grid_alignment,
+              grid_items: section.settings.items_per_row,
+              items_per_row: grid_width,
+              featured_collection: false,
+              placeholder: placeholder,
+              mobile_items_per_row: mobile_items_per_row %}
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <style>
+    {%- if section.settings.overlay_color != 'rgba(0,0,0,0)' -%}
+      .collection-spread-{{ section.id }} .collection-spread__item-overlay {
+        box-shadow: inset 0 0 0 2000px {{ section.settings.overlay_color | color_modify: 'alpha', 0.30 }};
+        width: 100%;
+        height: 100%;
+        position: absolute;
+      }
+    {%- endif -%}
+    .collection-spread__img-wrapper {
+      height: 400px !important;
+    }
+    .collection-spread-{{ section.id }} .collection-spread__img-wrapper .box-ratio {
+      padding-bottom: 400px !important;
+    }
+    .collection-spread-{{ section.id }} .collection-spread__img-wrapper .box-ratio img {
+      object-fit: cover;
+      object-position: center;
+      height: 400px !important;
+    }
+    .collection-spread__caption-wrapper h2 {
+      color: var(--background);
+    }
+    .collection-spread__caption-wrapper a {
+      color: var(--background);
+      border-bottom: 1px solid transparent;
+      padding-bottom: 7px;
+    }
+    .collection-spread__caption-wrapper a:hover {
+      border-color: var(--background);
+    }
+  </style>
+</section>
+
+{% schema %}
+  {
+    "name": "Collection spread",
+    "settings": [
+      {
+        "label": "Collection",
+        "id": "collection",
+        "type": "collection"
+      },
+      {
+        "type": "image_picker",
+        "id": "collection_image",
+        "label": "Collection image",
+        "info": "Overrides default collection image."
+      },
+      {
+        "type": "color",
+        "id": "overlay_color",
+        "label": "Image overlay color",
+        "default": "#000"
+      },
+      {
+        "type": "range",
+        "id": "items_per_row",
+        "min": 2,
+        "max": 4,
+        "step": 1,
+        "label": "Products per row",
+        "default": 3
+      },
+      {
+        "type": "range",
+        "id": "items_per_page",
+        "min": 3,
+        "max": 12,
+        "step": 1,
+        "label": "Products shown",
+        "default": 3
+      },
+      {
+        "type": "checkbox",
+        "id": "mobile_items_per_row",
+        "label": "Two per row on mobile",
+        "default": false,
+        "info": "Default is one product per row."
+      }
+  ],
+  "presets":
+  [
+    {
+      "name": "Collection spread"
+    }
+  ],
+  "templates": ["404", "article", "blog", "cart", "collection", "list-collections", "index", "page", "product", "search", "customers/account"]
+}
+{% endschema %}

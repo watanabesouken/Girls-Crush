@@ -1,0 +1,106 @@
+@media (max-width: 967px) {
+  .collection-countdown__imgs-wrapper,
+  .collection-countdown__imgs-wrapper .box-ratio img,
+  .collection-countdown__imgs-wrapper .placeholder-image svg {
+    height: 700px;
+  }
+  .collection-countdown__imgs-wrapper .placeholder-image svg {
+    width: 100%;
+  }
+  .collection-countdown__imgs-wrapper .box-ratio {
+    padding-bottom: 700px !important;
+  }
+  .collection-countdown__countdown-wrapper {
+    top: 180px;
+  }
+  .collection-countdown__countdown-wrapper {
+    width: 335px;
+  }
+}
+@media (min-width: 968px) {
+  .collection-countdown__imgs-wrapper,
+  .collection-countdown__imgs-wrapper .box-ratio img,
+  .collection-countdown__imgs-wrapper .placeholder-image svg {
+    height: 980px;
+  }
+  .collection-countdown__imgs-wrapper .placeholder-image svg {
+    width: 100%;
+  }
+  .collection-countdown__imgs-wrapper .box-ratio {
+    padding-bottom: 980px !important;
+  }
+  .collection-countdown__countdown-wrapper {
+    top: 280px;
+  }
+  .collection-countdown__countdown-wrapper {
+    width: 600px;
+  }
+  .collection-countdown__heading {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+}
+.collection-countdown__time,
+.collection-countdown__colon-divider {
+  font-size: var(--countdown-size);
+}
+.collection-countdown__label,
+.collection-countdown__how,
+.collection-countdown__time-label {
+  font-size: var(--font-size-sm);
+}
+.collection-countdown__time--wrapper {
+  opacity: 0;
+  transition: opacity 0.5s ease-in;
+}
+.collection-countdown__colon-divider {
+  position: absolute;
+  top: 30%;
+  transform: translateY(-30%);
+  right: -15px;
+}
+.collection-countdown__label {
+  font-weight: bold;
+}
+.collection-countdown__how {
+  text-decoration: underline;
+}
+.collection-countdown__countdown-wrapper {
+  max-width: 600px !important;
+  box-shadow: 2px 2px 6px 0 rgba(0, 0, 0, 0.5);
+  left: 50%;
+  transform: translateX(-50%);
+}
+.collection-countdown__imgs-wrapper .box-ratio img {
+  width: 100%;
+  object-fit: cover;
+}
+.collection-countdown__heading-wrapper {
+  background: var(--background);
+  bottom: 0;
+  right: 0;
+}
+.collection-countdown__button {
+  margin-bottom: 0 !important;
+  width: 100%;
+}
+
+/* Notify Me */
+.collection-countdown__notify-form .notify-form--input {
+  padding: 0 !important;
+  border: none !important;
+}
+
+.collection-countdown__notify-form .notify-form--btn {
+  margin: 0;
+  background: transparent;
+  color: var(--text-color);
+  text-transform: unset;
+  padding: 0;
+}
+
+.collection-countdown__notify-form .notify-form--btn:hover {
+  background:  transparent;
+  color: var(--text-color);
+}

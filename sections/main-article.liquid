@@ -1,0 +1,147 @@
+{% comment %} Article Body Logic {% endcomment %}
+{%- liquid
+  assign number_of_comments = article.comments_count
+  assign show_author = section.settings.show_author
+
+-%}
+
+{% comment %} Article Body Template {% endcomment %}
+<section
+  class="article-body px8 mb9"
+  data-section-id="{{ section.id }}"
+  data-section-type="article-template"
+  data-section-loaded="false">
+
+  <div class="article_body-wrapper">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+        {%- when 'article_content' -%}
+          <div class="article_body-rte rte mb9" {{ block.shopify_attributes }}>
+            {{ article.content }}
+          </div>
+        {%- when 'article_pagination' -%}
+          {%- if blog.previous_article or blog.next_article -%}
+            <div class="article_body-pagination prev-next-pagination mb9 border-top border-bottom shrink-wrap px1 py4" {{ block.shopify_attributes }}>
+              <a class="prev-article inline-block w50 mb0 a-left" href="{{ blog.previous_article }}">
+                {% if blog.previous_article != blank %}
+                  {% render 'snip-icons',
+                     wrapper: '.prev-next-pagination',
+                     type: 'theme',
+                     icon: 'arrow-left',
+                     size: '12px',
+                     classes: 'vib-center',
+                     fill: 'var(--text-color)',
+                     hover: 'var(--text-color)' %}
+                  <span class="vib-center">&nbsp;{{ blog.previous_article.title | truncate: 30 }}</span>
+                {% endif %}
+              </a>
+              <a class="next-article inline-block w50 mb0 a-right" href="{{ blog.next_article }}">
+                {% if blog.next_article != blank %}
+                  <span class="vib-center">{{ blog.next_article.title | truncate: 30 }}&nbsp;</span>
+                  {% render 'snip-icons',
+                     wrapper: '.prev-next-pagination',
+                     type: 'theme',
+                     icon: 'arrow-right',
+                     size: '12px',
+                     classes: 'vib-center',
+                     fill: 'var(--text-color)',
+                     hover: 'var(--text-color)' %}
+                {% endif %}
+              </a>
+            </div>
+          {%- endif -%}
+        {%- when 'article_comments' -%}
+          {% assign assign number_of_comments = article.comments_count %}
+          {%- if blog.comments_enabled? -%}
+            <div class="article_body-comments" {{ block.shopify_attributes }}>
+              {% render 'article-comments',
+                blog: blog,
+                article: article,
+                number_of_comments: number_of_comments
+               %}
+            </div>
+          {%- endif -%}
+      {%- endcase -%}
+    {%- endfor -%}
+  </div>
+  <style>
+    @media (max-width: 767px) {
+      .article-body--wrapper {
+        width: 100% !important;
+      }
+    }
+    .article_body-comments .gravatar img {
+      border-radius: 50%;
+    }
+    /* only apply on mobile devices */
+    @media screen and (max-width: 767px) {
+      /* change to flexbox so we can re-arrange elements */
+      .template-article .page-wrap {
+        display: flex;
+        flex-direction: column;
+      }
+      /* move below the main article content */
+      .template-article .article-sidebar--wrapper {
+        order: 2;
+      }
+    }    
+  </style>
+  <script type="text/javascript">
+    setWidth();
+
+    document.addEventListener("shopify:section:unload", function(event) {
+      setWidth();
+    });
+
+    document.addEventListener("shopify:section:load", function(event) {
+      setWidth();
+    });
+
+    function setWidth() {
+      setTimeout(() => {
+        var sidebar = document.querySelector('.article-sidebar--wrapper');
+        var article = document.querySelector('.article-body--wrapper');
+
+        console.log(sidebar)
+        if ( !sidebar ) {
+          article.classList.remove('w70');
+          article.classList.add('w100');
+        } else {
+          article.classList.add('w70');
+          article.classList.remove('w100');
+        }
+
+      }, 500);
+    }
+  </script>
+</section>
+
+{% schema %}
+{
+"name": "Article body",
+"class": "article-body--wrapper inline-block w70 pt9",
+"settings":
+  [
+  ],
+  "blocks": [
+    {
+      "type": "article_content",
+      "name": "Content",
+      "settings": [
+      ]
+    },
+    {
+      "type": "article_pagination",
+      "name": "Pagination",
+      "settings": [
+      ]
+    },
+    {
+      "type": "article_comments",
+      "name": "Comments",
+      "settings": [
+      ]
+    }
+  ]
+}
+{% endschema %}

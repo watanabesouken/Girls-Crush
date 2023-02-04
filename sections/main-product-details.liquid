@@ -1,0 +1,323 @@
+{% comment %} Product Details Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-main-product-details.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-main-product-details.css' | asset_url }}"></noscript>
+
+{% comment %} Product Details Logic {% endcomment %}
+{%- liquid
+
+  assign collection_handle_namespace = product.type | handle | append: "-details"
+  assign current_variant = product.selected_or_first_available_variant
+  assign metafield_image = false
+  assign section_image = false
+  assign has_image = false
+
+  if product.metafields.my_fields.details_image != blank
+    assign metafield_image = true
+    assign has_image = true
+  endif
+
+  if section.settings.details_image != blank
+    assign section_image = true
+    assign has_image = true
+  endif
+
+  if has_image
+   assign grid_width = ' span-5 auto'
+  else
+    assign grid_width = ' span-6 push-3 auto'
+  endif
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'mb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 mb0'
+  endif
+
+-%}
+
+{% comment %} Product Details Template {% endcomment %}
+<section class="section__product-details product-bottom global__section {{ section_padding }} product__section--details"
+data-product-details
+data-section-id="{{ section.id }}"
+data-section-type="product-details"
+data-section-loaded="false">
+  <div class="grid__wrapper cg9 sm-cg0 py8">
+    {%- if has_image -%}
+      <article class="span-7 auto sm-span-12 v-center">
+        {%- if metafield_image -%}
+          {% render 'helper-image',
+             type: product.metafields.my_fields.details_image.value,
+             sm_render: '100vw'
+             md_render: 'calc(100vw / 2 )',
+             lg_render: 'calc(1600px / 2 )' %}
+         {%- elsif section_image -%}
+           {% render 'helper-image',
+              type: section.settings.details_image,
+              sm_render: '100vw'
+              md_render: 'calc(100vw / 2 )',
+              lg_render: 'calc(1600px / 2 )' %}
+        {%- endif -%}
+      </article>
+    {%- endif -%}
+    <article class="{{ grid_width }} v-center sm-span-12">
+      <h2>{{ 'products.product.product_details' | t }}</h2>
+      <ul class="product-template__details-table mb0 animate--text delay--1">
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'product_text' -%}
+              {%- unless block.settings.metafield_content == blank -%}
+                <li class="detail" {{ block.shopify_attributes }}>
+                  {%- if block.settings.metafield_label != blank -%}
+                    <p class="label">{{ block.settings.metafield_label | escape }}：</p>
+                  {%- endif -%}
+                  <p class="item custom_metafield {% if block.settings.metafield_label == blank %}full_grid{% endif %}">
+                    {{ block.settings.metafield_content }}
+                  </p>
+                </li>
+              {%- endunless -%}
+            {%- when 'product_richtext' -%}
+              {%- unless block.settings.metafield_content == blank -%}
+                <li class="detail" {{ block.shopify_attributes }}>
+                  {%- if block.settings.metafield_label != blank -%}
+                    <p class="label">{{ block.settings.metafield_label | escape }}：</p>
+                  {%- endif -%}
+                  <div class="item custom_metafield rte mb0 {% if block.settings.metafield_label == blank %}full_grid{% endif %}">
+                    {{ block.settings.metafield_content }}
+                  </div>
+                </li>
+              {%- endunless -%}
+            {%- when 'product_inventory' -%}
+              {%- unless product.handle contains 'gift-card' -%}
+                <li class="detail" {{ block.shopify_attributes }}>
+                  <p class="label">{{ 'products.product.inventory' | t }}：</p>
+                  <p class="item variant_inventory">
+                    {{ current_variant.inventory_quantity }}
+                  </p>
+                </li>
+              {%- endunless -%}
+            {%- when 'product_weight' -%}
+              {%- unless product.handle contains 'gift-card' -%}
+                <li class="detail" {{ block.shopify_attributes }}>
+                  <p class="label">{{ 'products.product.weight' | t }}：</p>
+                  <p class="item js-variant-weight">
+                    {{ current_variant.weight | weight_with_unit }}
+                  </p>
+                </li>
+              {%- endunless -%}
+            {%- when 'product_type' -%}
+              {%- unless product.handle contains 'gift-card' -%}
+                {%- if product.type != blank -%}
+                  <li class="detail" {{ block.shopify_attributes }}>
+                    <p class="label">{{ 'products.product.product_type' | t }}：</p>
+                    <p class="item">
+                      {{ product.type }}
+                    </p>
+                  </li>
+                {%- endif -%}
+              {%- endunless -%}
+            {%- when 'product_sku' -%}
+              {%- unless product.handle contains 'gift-card' -%}
+                <li class="detail" {{ block.shopify_attributes }}
+                  {%- if current_variant.sku == blank -%}
+                    style="display: none;"
+                  {%- endif -%}>
+                  <p class="label">{{ 'products.product.sku' | t }}：</p>
+                  <p class="item js-variant-sku">
+                    {{ current_variant.sku }}
+                  </p>
+                </li>
+              {%- endunless -%}
+            {%- when 'product_vendor' -%}
+              {%- if product.vendor != blank -%}
+                {%- unless product.handle contains 'gift-card' -%}
+                  <li class="detail" {{ block.shopify_attributes }}>
+                    <p class="label">ブランド</p>
+                    <p class="item">
+                      {{ product.vendor }}
+                    </p>
+                  </li>
+                {%- endunless -%}
+              {%- endif -%}
+            {%- when 'product_collection' -%}
+              {%- if collection != blank -%}
+                {%- unless product.handle contains 'gift-card' -%}
+                  <li class="detail" {{ block.shopify_attributes }}>
+                    <p class="label">{{ 'products.product.collection' | t }}：</p>
+                    <p class="item">
+                      {% capture url %}/collections/{{ collection.handle }}{% endcapture %}
+                      {{ collection.title | link_to: url }}
+                    </p>
+                  </li>
+                {%- endunless -%}
+              {%- endif -%}
+          {%- endcase -%}
+        {%- endfor -%}
+      </ul>
+    </article>
+    <style>
+      {% unless section.settings.color_scheme == 'none' %}
+        .product__section--details,
+        .product__section--details h2,
+        .product__section--details li,
+        .product__section--details p,
+        .product__section--details a {
+          color: var(--scheme-{{ section.settings.color_scheme }}-text) !important;
+        }
+        .product__section--details a:hover {
+          color: var(--scheme-{{ section.settings.color_scheme }}-hover) !important;
+        }
+        .product__section--details .product-template__details-table,
+        .product__section--details .product-template__details-table ul,
+        .product__section--details .product-template__details-table li {
+          border-color: var(--scheme-{{ section.settings.color_scheme }}-text) !important;
+        }
+        .product__section--details .grid__wrapper {
+          background-color: var(--scheme-{{ section.settings.color_scheme }}-bg) !important;
+        }
+      {% endunless %}
+    </style>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Details list",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "details_image",
+      "label": "Image",
+      "info": "Create a product metafield for \"my_fields.details_image\" to use a unique product image. Or upload a global image for this template."
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default":"1",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "section_padding",
+      "label": "Section spacing",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "both"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product_text",
+      "name": "Text",
+      "settings": [
+        {
+          "type": "text",
+          "id": "metafield_label",
+          "label": "Label",
+          "info": "Optional"
+        },
+        {
+          "type": "text",
+          "id": "metafield_content",
+          "label": "Content",
+          "info": "Add a [new custom metafield](\/admin\/metafields\/product\/create) then insert dynamic source."
+        }
+      ]
+    },
+    {
+      "type": "product_richtext",
+      "name": "Richtext",
+      "settings": [
+        {
+          "type": "text",
+          "id": "metafield_label",
+          "label": "Label",
+          "info": "Optional"
+        },
+        {
+          "type": "richtext",
+          "id": "metafield_content",
+          "label": "Content",
+          "info": "Add a [new custom metafield](\/admin\/metafields\/product\/create) then insert dynamic source."
+        }
+      ]
+    },
+    {
+      "type": "product_inventory",
+      "name": "Inventory",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "product_weight",
+      "name": "Weight",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "product_type",
+      "name": "Type",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "product_sku",
+      "name": "Sku",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "product_vendor",
+      "name": "Vendor",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "product_collection",
+      "name": "Collection",
+      "limit": 1,
+      "settings": []
+    }
+  ]
+}
+{% endschema %}

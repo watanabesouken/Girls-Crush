@@ -1,0 +1,306 @@
+{% comment %} Image with text assets {% endcomment %}
+<link rel="preload" href="{{ 'section-image-with-text.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-image-with-text.css' | asset_url }}"></noscript>
+
+{% comment %} Image with text logic {% endcomment %}
+{%- liquid
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+  if section.settings.iwt_layout == 'image_left'
+    assign img_order = 1
+    assign text_order = 2
+  else
+    assign img_order = 2
+    assign text_order = 1
+  endif
+
+  if section.settings.color_scheme == 'none'
+    assign text_color = 'var(--text-color)'
+    assign bg_color = 'var(--background)'
+  else
+    assign text_color = 'var(--scheme-' | append: section.settings.color_scheme | append: '-text)'
+    assign bg_color = 'var(--scheme-' | append: section.settings.color_scheme | append: '-bg)'
+    assign hover_color = 'var(--scheme-' | append: section.settings.color_scheme | append: '-hover)'
+    assign border_color = 'var(--scheme-' | append: section.settings.color_scheme | append: '-text)'
+  endif
+
+-%}
+
+{% comment %} Image with text template {% endcomment %}
+<div
+  class="global__section section-image-with-text image-with-text-{{ section.id }} {{ section_padding }} grid__wrapper edge relative cg4 sm-cg0"
+  data-section-id="{{ section.id }}"
+  data-section-type="image-with-text"
+  data-asset-url="{{ 'section-image-with-text.js' | asset_url }}"
+  data-section-loaded="false">
+    {% if section.settings.iwt_heading != blank %}
+      <div class="span-12 md-lg-hide">
+        <h2 class="mb4 sm-px4 animate--text">{{ section.settings.iwt_heading }}</h2>
+      </div>
+    {% endif %}
+    <article class="image span-8 auto pb6 relative image_position--{{ section.settings.iwt_layout }}" style="order: {{ img_order }};">
+      {% if section.settings.iwt_image != blank %}
+        <div class="background-image">
+        </div>
+      {% else %}
+        <div class="background-image onboard demo-1 color-1">
+          {{ 'product-1' | placeholder_svg_tag: 'placeholder-svg' }}
+        </div>
+      {% endif %}
+      {% if section.settings.click_to_enlarge %}
+        <a class="js-zoom-btn image-with-text__zoom-btn no-js-hidden m0"
+          title="click to zoom-in"
+          data-index="0"
+          data-width="{{ section.settings.iwt_image.width }}"
+          data-height="{{ section.settings.iwt_image.height }}"
+          href="{{ section.settings.iwt_image | img_url: '2400x' }}">
+          {% render 'snip-icons',
+             wrapper: '.image-with-text__zoom-btn',
+             type: 'theme',
+             icon: 'zoom-in',
+             size: '32px',
+             classes: 'm0',
+             fill: bg_color,
+             hover: text_color %}
+        </a>
+      {% endif %}
+    </article>
+    <article class="info span-4 auto relative" style="order: {{ text_order }};">
+      <div class="info__inner-wrapper px8 sm-px4">
+        {% if section.settings.iwt_heading != blank %}
+          <h2 class="sm-hide animate--text">{{ section.settings.iwt_heading }}</h2>
+        {% endif %}
+        {% if section.settings.iwt_text != blank %}
+          <div class="rte mb0 animate--text delay--1">
+            {{ section.settings.iwt_text }}
+          </div>
+        {% endif %}
+        {% if section.settings.iwt_link != blank %}
+          <a class="button btn-outlined mt3 animate--text delay--2" href="{{ section.settings.iwt_link }}">{{ section.settings.iwt_button }}</a>
+        {% endif %}
+      </div>
+    </article>
+    <style>
+      .image-with-text-{{ section.id }} .image_position--image_left .background-image:after {
+        left: var(--iwt-border-padding);
+      }
+      .image-with-text-{{ section.id }} .image_position--image_right .background-image:after {
+        right: var(--iwt-border-padding);
+      }
+      @media (min-width: 768px) {
+        .image-with-text-{{ section.id }} article {
+          height: {{ section.settings.iwt_section_height }}px;
+        }
+        .image-with-text-{{ section.id }} .image_position--image_left .image-with-text__zoom-btn {
+          right: 10px;
+          bottom: 40px;
+        }
+        .image-with-text-{{ section.id }} .image_position--image_right .image-with-text__zoom-btn {
+          left: 10px;
+          bottom: 40px;
+        }
+      }
+      @media (max-width: 767px) {
+        .image-with-text-{{ section.id }} article.image {
+          height: 280px;
+          order: 1 !important;
+        }
+        .image-with-text-{{ section.id }} article.image.image_position--image_left {
+          padding-right: calc(var(--iwt-border-padding) + 20px);
+        }
+        .image-with-text-{{ section.id }} article.image.image_position--image_right {
+          padding-left: calc(var(--iwt-border-padding) + 20px);
+        }
+        .image-with-text-{{ section.id }} .image_position--image_left .image-with-text__zoom-btn {
+          right: 42px;
+          bottom: 35px;
+        }
+        .image-with-text-{{ section.id }} .image_position--image_right .image-with-text__zoom-btn {
+          left: 42px;
+          bottom: 35px;
+        }
+      }
+      @media (min-width: 1367px) {
+        .image-with-text-{{ section.id }} .background-image {
+          background-image: url({{ section.settings.iwt_image | img_url: '975x' }});
+        }
+      }
+      @media (min-width: 769px) and (max-width: 1366px) {
+        .image-with-text-{{ section.id }} .background-image {
+          background-image: url({{ section.settings.iwt_image | img_url: '700x' }});
+        }
+      }
+      @media (min-width: 412px) and (max-width: 768px) {
+        .image-with-text-{{ section.id }} .background-image {
+          background-image: url({{ section.settings.iwt_image | img_url: '770x' }});
+        }
+      }
+      @media (max-width: 411px) {
+        .image-with-text-{{ section.id }} .background-image {
+          background-image: url({{ section.settings.iwt_image | img_url: '420x' }});
+        }
+      }
+      .image-with-text-{{ section.id }} .image-with-text__zoom-btn:hover svg .hover-fill {
+        fill: {{ text_color }};
+      }
+      {%- unless section.settings.color_scheme == 'none' -%}
+        /* Color Scheme Styles */
+        #shopify-section-{{ section.id }} {
+          background-color: {{ bg_color }};
+        }
+        .image-with-text-{{ section.id }} .info__inner-wrapper h2,
+        .image-with-text-{{ section.id }} .info__inner-wrapper p,
+        .image-with-text-{{ section.id }} .info__inner-wrapper a {
+          color: {{ text_color }};
+        }
+        .image-with-text-{{ section.id }} .background-image:after {
+          border-color: {{ border_color }} !important;
+        }
+        .image-with-text-{{ section.id }} .info__inner-wrapper a.button.btn-outlined {
+          border-color: {{ text_color }} !important;
+          color: {{ text_color }} !important;
+        }
+        .image-with-text-{{ section.id }} .info__inner-wrapper a.button.btn-outlined:hover {
+          border-color: rgba(0,160,80,0) !important;
+          color: {{ hover_color }} !important;
+        }
+        .image-with-text-{{ section.id }} .info__inner-wrapper a.button.btn-outlined.btn-outlined::before {
+          border-color: {{ hover_color }} !important;
+        }
+      {%- endunless -%}
+    </style>
+</div>
+{% schema %}
+{
+  "name": "Image with text",
+  "tag": "section",
+  "class": "dynamic-section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "iwt_image",
+      "label": "Image"
+    },
+    {
+      "type": "select",
+      "id": "iwt_layout",
+      "label": "Layout",
+      "default": "image_left",
+      "options": [
+        {
+          "value": "image_left",
+          "label": "Image left"
+        },
+        {
+          "value": "image_right",
+          "label": "Image right"
+        }
+      ]
+    },
+    {
+      "type": "checkbox",
+      "id": "click_to_enlarge",
+      "label": "Enable click to enlarge",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Text settings"
+    },
+    {
+      "type": "text",
+      "id": "iwt_heading",
+      "label": "Heading",
+      "default": "Heading"
+    },
+    {
+      "type": "richtext",
+      "id": "iwt_text",
+      "label": "Text",
+      "default": "<p>Add text with an image to give an editorial feel. Drive traffic to key areas of your store by adding a call to action link.</p>"
+    },
+    {
+      "type": "text",
+      "id": "iwt_button",
+      "default": "Button",
+      "label": "Button label"
+    },
+    {
+      "type": "url",
+      "id": "iwt_link",
+      "label": "Button link"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default":"3",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        }
+      ]
+    },
+    {
+      "type": "range",
+      "id": "iwt_section_height",
+      "min": 200,
+      "max": 1200,
+      "step": 100,
+      "unit": "px",
+      "label": "Section height",
+      "default": 500
+    },
+    {
+      "type": "select",
+      "id": "section_padding",
+      "label": "Section spacing",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "both"
+    }
+  ],
+  "presets": [{
+    "name": "Image with text"
+    }
+  ],
+  "templates": ["404", "article", "blog", "cart", "collection", "list-collections", "index", "page", "product", "search"]
+}
+{% endschema %}

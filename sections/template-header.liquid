@@ -1,0 +1,379 @@
+{% comment %} Banner Image Logic {% endcomment %}
+{%- liquid
+
+  assign has_image = false
+  assign float_header = section.settings.float_header
+  assign subheading = section.settings.subheading
+  assign coming_soon = false
+  assign flash_sale = false
+
+  if section.settings.image != blank
+    assign has_image = true
+  endif
+
+  if section.settings.image == blank and template contains 'article' and article.image != blank
+    assign has_image = true
+  endif
+
+  if template contains 'collection' and template != 'list-collections'
+    assign basic_banner_img = collection.handle | append: '.jpg'
+
+    if images[basic_banner_img] != blank and collection.description contains '[banner]'
+      assign has_image = true
+    elsif section.settings.collection_image and collection.image != blank
+      assign has_image = true
+    endif
+  endif
+
+  if section.settings.full_width
+    assign full_width =  'edge'
+  endif
+
+  assign sm_render = '100vw'
+  assign md_render = '100vw'
+  assign lg_render = '100vw'
+
+
+  case template
+    when '404'
+      assign heading = 'general.404.title' | t
+    when 'search'
+      if search.performed
+        assign heading = 'general.search.title_results' | t
+      else
+        assign heading = 'general.search.title' | t
+      endif
+    when 'list-collections'
+      assign heading = 'collections.general.all_collections' | t
+    when 'blog'
+      assign heading = blog.title
+    when 'customers/account'
+      assign heading = 'customer.account.title' | t
+    when 'customers/login'
+      if shop.checkout.guest_login
+        assign heading = 'customer.login.guest_title' | t
+      else
+        assign heading = 'customer.login.title' | t
+      endif
+    when 'customers/order'
+      assign heading = 'customer.order.title' | t
+      assign subheading = '<p>' | append: order.name | append: '</p>'
+    when 'customers/addresses'
+      assign heading = 'customer.addresses.title' | t
+    when 'cart'
+      assign heading = 'cart.general.title' | t
+  endcase
+
+  if template contains 'page'
+    assign heading = page.title
+  endif
+
+  if template contains 'article'
+    assign heading = article.title
+  endif
+
+  if template contains 'collection' and template != 'list-collections'
+    assign heading = collection.title
+
+    if section.settings.show_countdown and collection.metafields.my_fields.launch != blank
+      assign launch_date = collection.metafields.my_fields.launch.value | date: "%s"
+    elsif section.settings.show_countdown and collection.description contains '[#launch_date]'
+      assign launch_date = collection.description | split: '[/launch_date]' | first | split: '[#launch_date]' | last
+      assign launch_date = launch_date | date: "%s"
+    endif
+
+    if section.settings.show_countdown and collection.metafields.my_fields.sale_end != blank
+      assign sale_date = collection.metafields.my_fields.sale_end.value | date: "%s"
+    elsif section.settings.show_countdown and collection.description contains '[#sale_end]'
+      assign sale_date = collection.description | split: '[/sale_end]' | first | split: '[#sale_end]' | last
+      assign sale_date = sale_date | date: "%s"
+    endif
+
+    assign date_now = "now" | date: "%s"
+
+    if launch_date != blank
+      assign public_launch_date = launch_date | date: "%b %d, %y"
+      if launch_date > date_now
+        assign coming_soon = true
+      endif
+    endif
+
+    if sale_date != blank
+      if sale_date > date_now
+        assign flash_sale = true
+      endif
+    endif
+  endif
+
+  if section.settings.heading != blank
+    assign heading = section.settings.heading
+  endif
+
+  if section.settings.scale > 0
+    assign section_type = 'data-section-type="parallax"'
+    assign scale = section.settings.scale
+    assign is_parallax = true
+  else
+    assign section_type = 'data-section-type="template-header"'
+    assign is_parallax = false
+  endif
+
+  assign text_over_dark = settings.header_text_over | color_darken: 20
+  assign text_over_light = settings.header_text_over | color_lighten: 50
+  assign dark_contrast = settings.header_text_over | color_contrast: text_over_dark
+  assign light_contrast = settings.header_text_over | color_contrast: text_over_light
+  if dark_contrast > light_contrast
+    assign header_bg_color = text_over_dark
+  else
+    assign header_bg_color = text_over_light
+  endif
+
+-%}
+
+{% comment %} Banner Image Template {% endcomment %}
+<div class="global__section section__banner-{{ section.id }} mt0 grid__wrapper {{ full_width }} rg0 cg0 relative template-header"
+data-section-id="{{ section.id }}"
+{{ section_type }}
+data-section-loaded="false"
+data-scale="1.{{ scale }}"
+{%- if is_parallax -%}data-asset-url="{{ 'section-parallax.js' | asset_url }}"{%- endif -%}
+{%- if coming_soon -%}data-launch-date="{{ launch_date }}"{%- endif -%}
+{%- if flash_sale -%}data-launch-date="{{ sale_date }}"{%- endif -%}>
+
+  <div class="section__banner-image span-12 auto">
+    {%- if has_image -%}
+     {%- if section.settings.collection_image and collection.image != blank -%}
+      {% render 'helper-image',
+         type: collection.image,
+         sm_render: sm_render
+         md_render: md_render,
+         lg_render: lg_render %}
+      {%- elsif template contains 'collection' and images[basic_banner_img] != blank and collection.description contains '[banner]' and template != 'list-collections' -%}
+        <div class="box-ratio">
+           <img srcset="{{ basic_banner_img | file_img_url: '180x' }} 180w,
+              {{ basic_banner_img | file_img_url: '360x' }} 360w,
+              {{ basic_banner_img | file_img_url: '540x' }} 540w,
+              {{ basic_banner_img | file_img_url: '720x' }} 720w,
+              {{ basic_banner_img | file_img_url: '780x' }} 780w,
+              {{ basic_banner_img | file_img_url: '900x' }} 900w,
+              {{ basic_banner_img | file_img_url: '1080x' }} 1080w,
+              {{ basic_banner_img | file_img_url: '1220x' }} 1220w,
+              {{ basic_banner_img | file_img_url: '1520x' }} 1520w,
+              {{ basic_banner_img | file_img_url: '1920x' }} 1920w"
+              src="{{ basic_banner_img | file_img_url: '720x' }}"
+              sizes="(min-width: 1601px) {{ lg_render }}, (min-width: 768px) and (max-width: 1600px) {{ md_render }}, (max-width: 767px) {{ sm_render }}, 900px"
+              width="{{ basic_banner_img.width }}"
+              height="{{ basic_banner_img.height }}"
+              alt="{{ basic_banner_img.alt | escape }}"
+              loading="lazy">
+         </div>
+      {%- elsif section.settings.image == blank and template contains 'article' and article.image != blank -%}
+        {% render 'helper-image',
+           type: article.image,
+           sm_render: sm_render
+           md_render: md_render,
+           lg_render: lg_render %}
+      {%- else -%}
+        {% render 'helper-image',
+           type: section.settings.image,
+           sm_render: sm_render
+           md_render: md_render,
+           lg_render: lg_render %}
+      {%- endif -%}
+    {%- endif -%}
+  </div>
+  {% if heading != blank %}
+    <div class="section__banner-caption grid__wrapper span-12 auto {{ section.settings.alignment }} {% if float_header %}absolute-center banner-text--over{% else %}mt2 pb2 pt9{% endif %}">
+      
+      {%- if coming_soon or flash_sale -%}
+        <div class="section__banner-countdown span-6 push-3 sm-span-12 auto v-start no-js-hidden {{ section.settings.alignment }} px2 grid__wrapper edge rg0 animate--text delay--1" data-product-countdown>
+          {%- if coming_soon -%}
+            <p class="span-12 auto mb0 {{ section.settings.alignment }} collection-countdown__label">
+              {{ 'collections.header.coming_soon_label' | t }}
+            </p>
+          {%- elsif flash_sale -%}
+            <p class="span-12 auto mb0 {{ section.settings.alignment }} collection-countdown__label">
+              {{ 'collections.header.flash_sale_label' | t }}
+            </p>
+          {%- endif -%}
+          <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py3 relative a-center">
+            <p class="collection-countdown__time h1" data-launch-days>00</p>
+            <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.days' | t }}</p>
+            <span class="collection-countdown__colon-divider h1">:</span>
+          </div>
+          <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py3 relative a-center">
+            <p class="collection-countdown__time h1" data-launch-hours>00</p>
+            <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.hours' | t }}</p>
+            <span class="collection-countdown__colon-divider h1">:</span>
+          </div>
+          <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py3 relative a-center">
+            <p class="collection-countdown__time h1" data-launch-mins>00</p>
+            <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.mins' | t }}</p>
+            <span class="collection-countdown__colon-divider h1">:</span>
+          </div>
+          <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py3 relative a-center">
+            <p class="collection-countdown__time h1" data-launch-secs>00</p>
+            <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.secs' | t }}</p>
+          </div>
+        </div>
+      {%- endif -%}
+      {%- if subheading != blank and coming_soon == false and flash_sale == false -%}
+        <div class="span-12 auto mb0 rte animate--text delay--1">
+          {{ subheading }}
+        </div>
+      {%- endif -%}
+    </div>
+  {% endif %}
+
+  <style>
+    .section__banner-{{ section.id }} .section__banner-caption.banner-text--over h1,
+    .section__banner-{{ section.id }} .section__banner-caption.banner-text--over .rte p,
+    .section__banner-{{ section.id }} .section__banner-caption.banner-text--over .rte a,
+    .section__banner-{{ section.id }} .section__banner-caption.banner-text--over .section__banner-countdown p,
+    .section__banner-{{ section.id }} .section__banner-caption.banner-text--over .section__banner-countdown span {
+      color: var(--header-text-over);
+    }
+    .section__banner-{{ section.id }} .box-ratio {
+      padding-bottom: {{ section.settings.banner_height }}px !important;
+    }
+    .section__banner-{{ section.id }} .box-ratio img {
+      object-fit: cover;
+      object-position: center;
+      height: {{ section.settings.banner_height }}px !important;
+    }
+
+    {%- if float_header == true -%}
+      .section__banner-{{ section.id }} .section__banner-image {
+        height: {{ section.settings.banner_height }}px !important;
+        background-color: {{ header_bg_color }};
+      }
+    {%- elsif has_image == false and float_header == false -%}
+      /* No image and no floating text default header colors back to normal */
+      body.over-content--true .section-header .color--header-text,
+      body.over-content--true .section-header .color--header-text span {
+        color: var(--header-text) !important;
+      }
+      body.over-content--true .section-header .color--header-text svg .hover-fill {
+        fill: var(--header-text) !important;
+      }
+      body.over-content--true .section-header .color--header-text:hover,
+      body.over-content--true .section-header .color--header-text:hover span {
+        color: var(--header-hover) !important;
+      }
+      body.over-content--true .section-header .color--header-text:hover svg .hover-fill {
+        fill: var(--header-hover) !important;
+      }
+      body.over-content--true .section__banner-{{ section.id }} .section__banner-caption {
+        padding-top: var(--space-11) !important;
+      }
+    {%- endif -%}
+    .section__banner-{{ section.id }} .section__banner-caption.absolute-center.a-left {
+      text-align: left !important;
+    }
+    {%- if has_image and is_parallax -%}
+      .section__banner-{{ section.id }} .box-ratio img {
+        transform: scale(1.{{ scale }});
+      }
+    {%- endif -%}
+  </style>
+</div>
+
+{% schema %}
+{
+  "name": "Template header",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "Enable full width",
+      "default": true
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image",
+      "info": "2880px x 1620px recommended"
+    },
+    {
+      "type": "range",
+      "id": "scale",
+      "min": 0,
+      "max": 5,
+      "step": 1,
+      "label": "Parallax effect",
+      "default": 2,
+      "info": "The higher the scale the greater the effect, 0 removes parallax effect."
+    },
+    {
+      "type": "range",
+      "id": "banner_height",
+      "min": 200,
+      "max": 600,
+      "step": 100,
+      "unit": "px",
+      "label": "Height",
+      "default": 400
+    },
+    {
+     "type": "checkbox",
+     "id": "float_header",
+     "label": "Show template heading on image",
+     "default": true
+    },
+    {
+     "type": "text",
+     "id": "heading",
+     "label": "Heading",
+     "info": "Overrides the template heading."
+    },
+    {
+      "id": "subheading",
+      "type": "richtext",
+      "label": "Subheading",
+      "default": "<p>Add some descriptive subheading text to your template header.</p>"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "a-left",
+          "label": "Left"
+        },
+        {
+          "value": "a-center",
+          "label": "Center"
+        }
+      ],
+      "default": "a-center"
+    },
+    {
+      "type": "header",
+      "content": "Collections"
+    },
+    {
+      "type": "paragraph",
+      "content": "Settings for collection templates."
+    },
+    {
+      "type": "checkbox",
+      "id": "collection_image",
+      "label": "Use collection image",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_countdown",
+      "label": "Show countdown",
+      "default": true,
+      "info": "Show a countdown on collections by using a collection metafield of my_fields.launch (for coming soon) or my_fields.sale_end (for sales)."
+    },
+    {
+      "type": "paragraph",
+      "content": "Learn how to set up a [coming soon collection](https://www.weareunderground.com/blogs/drop-support/drop-coming-soon-feature) or [sale collection](https://www.weareunderground.com/blogs/drop-support/drop-flash-sale-feature)."
+    }
+  ]
+}
+{% endschema %}

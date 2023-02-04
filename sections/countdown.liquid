@@ -1,0 +1,498 @@
+{% comment %} Countdown Section Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-countdown.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-countdown.css' | asset_url }}"></noscript>
+
+{% comment %}Countdown Section Logic {% endcomment %}
+{%- liquid
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+  if section.settings.full_width
+    assign full_width =  'edge'
+  endif
+
+  assign has_collection = false
+  assign has_product = false
+
+  if section.settings.collection != blank
+    assign has_collection = true
+    assign collection = collections[section.settings.collection]
+    assign link_url = collection.url
+  endif
+
+  if section.settings.product != blank
+    assign has_product = true
+    assign product = all_products[section.settings.product]
+    assign link_url = product.url
+  endif
+
+  assign image_count = 0
+  if section.settings.image_one != blank
+    assign image_count = image_count | plus: 1
+  endif
+  if section.settings.image_two != blank
+    assign image_count = image_count | plus: 1
+  endif
+  if has_collection and collection.products.first.media[0] != blank
+    assign image_count = image_count | plus: 1
+  endif
+  if has_product and product.media[0] != blank
+    assign image_count = image_count | plus: 1
+  endif
+  if has_collection and collection.products.first.media[1] != blank
+    assign image_count = image_count | plus: 1
+  endif
+  if has_product and product.media[1] != blank
+    assign image_count = image_count | plus: 1
+  endif
+
+  if image_count == 0
+   assign placeholder_imgs = true
+  endif
+
+  if image_count == 1
+    assign img_render = '100vw'
+  elsif image_count > 1
+    assign img_render = 'calc(100vw / 2)'
+  endif
+
+  if has_product
+    for collection in product.collections
+      if collection.metafields.my_fields.launch != blank
+       assign launch_date = collection.metafields.my_fields.launch.value | date: "%s"
+       break
+      endif
+
+      if collection.metafields.my_fields.sale_end != blank
+       assign sale_date = collection.metafields.my_fields.sale_end.value | date: "%s"
+       break
+      endif
+    endfor
+
+    if product.metafields.my_fields.launch != blank
+      assign launch_date = product.metafields.my_fields.launch.value | date: "%s"
+    endif
+
+    if product.metafields.my_fields.sale_end != blank
+      assign sale_date = product.metafields.my_fields.sale_end.value | date: "%s"
+    endif
+  endif
+
+  if has_collection and collection.metafields.my_fields.launch != blank
+    assign launch_date = collection.metafields.my_fields.launch.value | date: "%s"
+  endif
+
+  if has_collection and collection.metafields.my_fields.sale_end != blank
+    assign sale_date = collection.metafields.my_fields.sale_end.value | date: "%s"
+  endif
+
+  if sale_date != blank
+    assign timestamp = sale_date
+  else if launch_date != blank
+    assign timestamp = launch_date
+  endif
+
+  assign date_now = "now" | date: "%s"
+  assign coming_soon = false
+  if launch_date > date_now
+    assign coming_soon = true
+  endif
+
+  assign on_sale = false
+  if sale_date > date_now
+    assign on_sale = true
+  endif
+
+  if coming_soon or on_sale
+    assign label_text = section.settings.countdown_label
+    assign button_text = section.settings.countdown_button
+    assign heading_text = section.settings.heading
+  else
+    assign label_text = section.settings.after_countdown_label
+    assign button_text = section.settings.after_countdown_button
+    assign heading_text = section.settings.after_heading
+  endif
+
+-%}
+
+{% comment %} Countdown Section Template {% endcomment %}
+<div class="global__section section-collection-countdown {{ section_padding }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="countdown"
+  data-section-loaded="false"
+  data-base-url="{{ shop.url}}{{ routes.root_url }}"
+  data-asset-url="{{ 'section-countdown.js' | asset_url }}"
+  data-launch-date="{{ timestamp }}">
+
+  <div class="grid__wrapper {{ full_width }} relative cg0 rg0">
+    <div class="span-12 auto">
+      <div class="collection-countdown__imgs-wrapper grid__wrapper edge rg0 cg0">
+        {%- if placeholder_imgs -%}
+          <div class="collection-countdown__img-wrapper span-6 dv-span-12 auto">
+            <div class="demo-1 color-1 placeholder-image">
+              {{ 'collection-1' | placeholder_svg_tag: 'placeholder-svg' }}
+            </div>
+          </div>
+          <div class="collection-countdown__img-wrapper span-6 sm-hide md-hide auto relative">
+            <div class="demo-1 color-2 placeholder-image">
+             {{ 'collection-2' | placeholder_svg_tag: 'placeholder-svg' }}
+            </div>
+          </div>
+        {%- else -%}
+          <div class="collection-countdown__img-wrapper {% if image_count > 1 %}span-6{% else %}span-12{% endif %} dv-span-12 auto">
+            {%- if section.settings.image_one != blank -%}
+              {% render 'helper-image',
+                 type: section.settings.image_one,
+                 sm_render: img_render
+                 md_render: img_render,
+                 lg_render: img_render %}
+            {%- elsif has_collection and collection.products.first.media[0] != blank -%}
+              {% render 'helper-image',
+                 type: collection.products.first.media[0],
+                 sm_render: img_render
+                 md_render: img_render,
+                 lg_render: img_render %}
+            {%- elsif has_product and product.media[0] != blank -%}
+              {% render 'helper-image',
+                 type: product.media[0],
+                 sm_render: img_render
+                 md_render: img_render,
+                 lg_render: img_render %}
+            {%- endif -%}
+          </div>
+          <div class="collection-countdown__img-wrapper span-6 sm-hide md-hide auto relative">
+            {%- if section.settings.image_two != blank -%}
+              {% render 'helper-image',
+              type: section.settings.image_two,
+              sm_render: img_render
+              md_render: img_render,
+              lg_render: img_render %}
+            {%- elsif has_collection and collection.products.first.media[1] != blank -%}
+              {% render 'helper-image',
+               type: collection.products.first.media[1],
+               sm_render: img_render
+               md_render: img_render,
+               lg_render: img_render %}
+            {%- elsif has_product and product.media[1] != blank -%}
+              {% render 'helper-image',
+               type: product.media[1],
+               sm_render: img_render
+               md_render: img_render,
+               lg_render: img_render %}
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+      <div id="countdownWrapper" class="collection-countdown__countdown-wrapper absolute">
+        <div class="collection-countdown__countdown grid__wrapper narrow rg0 pt6">
+          <div class="span-6 dv-span-6 auto a-left">
+            {% if label_text != blank %}
+              <p class="collection-countdown__label mb0">
+                {{ label_text }}
+              </p>
+            {% endif %}
+          </div>
+          <div class="span-6 dv-span-6 auto a-right">
+            {%- if section.settings.link != blank and section.settings.link_text != blank -%}
+              <a class="collection-countdown__how mb0" href="{{ section.settings.link }}">{{ section.settings.link_text }}</a>
+            {%- endif -%}
+          </div>
+          <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center animate--text">
+            <p class="collection-countdown__time h1" data-launch-days>00</p>
+            <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.days' | t }}</p>
+            <span class="collection-countdown__colon-divider h1">:</span>
+          </div>
+          <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center animate--text">
+            <p class="collection-countdown__time h1" data-launch-hours>00</p>
+            <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.hours' | t }}</p>
+            <span class="collection-countdown__colon-divider h1">:</span>
+          </div>
+          <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center animate--text">
+            <p class="collection-countdown__time h1" data-launch-mins>00</p>
+            <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.mins' | t }}</p>
+            <span class="collection-countdown__colon-divider h1">:</span>
+          </div>
+          <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center animate--text">
+            <p class="collection-countdown__time h1" data-launch-secs>00</p>
+            <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.secs' | t }}</p>
+          </div>
+
+          {%- unless coming_soon or on_sale -%}
+            <div class="collection-countdown__time--up span-12 auto a-center">
+              <p class="h4">{{ section.settings.complete_msg }}</p>
+            </div>
+          {%- endunless -%}
+        </div>
+        <div class="collection-countdown__notify-form js-notify-form">
+          {% form 'contact', class: "grid__wrapper edge rg0 cg0 js-no-validate js-notify-contact-form", id: product.id %}
+            {%- liquid
+
+              if form.posted_successfully?
+               assign style = 'display: block;'
+              else
+                assign style = 'display: none;'
+              endif
+
+            -%}
+            <div class="notify-form__inner-wrapper span-12 auto grid__wrapper js-notify-form-wrap" style="{{ style }}">
+              {%- if form.posted_successfully? -%}
+               <script type="text/javascript">
+                if ( sessionStorage.getItem('prev_url') !== null ) {
+                  window.location.href = sessionStorage.getItem('prev_url');
+                }
+               </script>
+              {%- else -%}
+                <div class="span-10 push-1 auto a-center notify-form__subscribe-wrapper">
+                  {% if customer %}
+                    <label class="notify-form--label span-12 auto a-center h4" for="contact[email]">{{ 'general.sections.countdown.customer_name_html' | t: customer: customer.first_name }}</label>
+                  {% else %}
+                    <label class="notify-form--label span-12 auto a-center h4" for="contact[email]">{{ 'general.sections.countdown.notification_label' | t }}</label>
+                  {% endif %}
+
+                  <div class="span-12 auto border-bottom mb4">
+                    {% assign msg_title = product.title | remove: '"' %}
+                    <input type="hidden" name="contact[product]" value="{{ product.title | escape }}">
+                    {%- if product.selected_or_first_available_variant.sku != blank -%}
+                      <input type="hidden" name="contact[product_sku]" value="{{ product.selected_or_first_available_variant.sku }}">
+                    {%- endif -%}
+                    <input type="hidden" id="message_body" name="contact[body]" value="{{ 'general.sections.countdown.notfication_msg' | t: msg_title: msg_title }}" />
+
+                    {% if customer %}
+                      <input class="notify-form--input inline-block w70 a-left v-center" required type="email" name="contact[email]" id="contact[email]" value="{{ customer.email }}" placeholder="{{ customer.email }}"/>
+                    {% else %}
+                      <input class="notify-form--input product-form__notify-form inline-block w70 a-left v-center" required type="email" name="contact[email]" id="contact[email]" placeholder="{{ 'general.newsletter_form.email_placeholder' | t }}"/>
+                    {% endif %}
+                    <input class="notify-form--btn button js-notify-submit inline-block w30 a-right v-center" data-product-id="{{ product.id }}" type="submit" value="{{ 'general.sections.countdown.notification_submit' | t }}">
+                  </div>
+                </div>
+              {%- endif -%}
+            </div>
+            <div class="errors note note-error mb3 inline-block js-form-error span-10 push-1 auto py2 px4 mb4 a-left" style="display: none;">
+              <div class="inline-block v-center w10">
+                {% render 'snip-icons',
+                   wrapper: '.errors.note',
+                   type: 'apollo',
+                   icon: 'error',
+                   size: '20px',
+                   classes: 'mr3',
+                   fill: 'var(--error-msg-dark)',
+                   hover: 'var(--error-msg-dark)' %}
+              </div>
+              <p class="inline-block mb0">Email is Required.</p>
+            </div>
+            <div class="notify-form__success-wrapper js-notify-success span-10 push-1 auto py2 px4 mb4 a-center" style="display: none;">
+              {% if customer %}
+                <label class="notify-form--label span-12 auto a-center h4" for="contact[email]">{{ 'general.sections.countdown.customer_name_success_html' | t: customer: customer.first_name }}</label>
+              {% else %}
+                <label class="notify-form--label span-12 auto a-center h4" for="contact[email]">{{ 'general.sections.countdown.notification_label_success' | t }}</label>
+              {% endif %}
+            </div>
+          {% endform %}
+        </div>
+        <div class="grid__wrapper edge">
+          <div class="span-12 auto a-center">
+            {%- if coming_soon -%}
+              <button class="collection-countdown__button button mb0 js-notify-form-trigger">{{ button_text }}</button>
+            {% else %}
+              <a class="collection-countdown__button button mb0" href="{{ link_url }}">{{ button_text }}</a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="countdownTitle" class="collection-countdown__heading push-6 span-6 dv-span-12 dv-push-0 auto">
+      {%- if heading_text != blank -%}
+        <div class="collection-countdown__heading-wrapper py8 px6">
+          <div class="inline-block w70 v-center a-left">
+            <h2 class="mb0 h1 animate--text delay--3"><a href="{{ link_url }}">{{ heading_text }}</a></h2>
+          </div>
+          <div class="inline-block w30 v-center a-right">
+            <a href="{{ link_url }}">
+              {% render 'snip-icons',
+                 wrapper: '.collection-countdown__heading-wrapper',
+                 type: 'theme',
+                 icon: 'arrow-right',
+                 size: '44px',
+                 classes: 'm0',
+                 fill: 'var(--text-color)',
+                 hover: 'var(--text-color)' %}
+             </a>
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+  <style>
+    .collection-countdown__countdown-wrapper {
+      background-color: {{ settings.background | color_modify: 'alpha', 0.9 }};
+    }
+    .collection-countdown__imgs-wrapper {
+      background-color: {{ settings.text_color | color_modify: 'alpha', 0.5 }};
+    }
+  </style>
+</div>
+
+{% schema %}
+{
+  "name": "Countdown",
+  "tag": "section",
+  "class": "dynamic-section",
+  "settings": [
+  {
+    "label": "Collection",
+    "id": "collection",
+    "type": "collection"
+  },
+  {
+    "label": "Or product",
+    "id": "product",
+    "type": "product"
+  },
+  {
+    "type": "header",
+    "content": "Coming soon"
+  },
+  {
+    "type": "paragraph",
+    "content": "To countdown to a launch, the collection or product chosen above must have the my_fields.launch metafield with a date in the future selected."
+  },
+  {
+    "type": "header",
+    "content": "Flash sale"
+  },
+  {
+    "type": "paragraph",
+    "content": "To countdown to the end of sale, the collection or product chosen above must have the my_fields.sale_end metafield with a date in the future selected."
+  },
+  {
+    "type": "header",
+    "content": "Images"
+  },
+  {
+    "type": "paragraph",
+    "content": "Product images are used by default, override by uploading images below."
+  },
+  {
+    "type": "image_picker",
+    "id": "image_one",
+    "label": "Override image one",
+    "info": "660px x 1024px recommended"
+  },
+  {
+    "type": "image_picker",
+    "id": "image_two",
+    "label": "Override image two",
+    "info": "660px x 1024px recommended"
+  },
+  {
+   "type": "text",
+   "id": "link_text",
+   "label": "Link text",
+   "default": "See all coming soon"
+  },
+  {
+   "type": "url",
+   "id": "link",
+   "label": "Link"
+  },
+  {
+    "type": "header",
+    "content": "During Countdown"
+  },
+  {
+   "type": "text",
+   "id": "countdown_label",
+   "label": "Label",
+   "default": "Collection drops in"
+  },
+  {
+   "type": "text",
+   "id": "countdown_button",
+   "label": "Button",
+   "default": "Get notified when it’s available",
+   "info": "Opens a notification email form."
+  },
+  {
+   "type": "text",
+   "id": "heading",
+   "label": "Heading",
+   "default": "The new drop is finally here.",
+   "info": "Links to collection or product url."
+  },
+  {
+    "type": "header",
+    "content": "After Countdown"
+  },
+  {
+   "type": "text",
+   "id": "after_countdown_label",
+   "label": "Label",
+   "default": "Collection has dropped"
+  },
+  {
+    "type": "text",
+    "id": "complete_msg",
+    "label": "Message",
+    "default": "Countdown Complete. The collection is here!"
+  },
+  {
+   "type": "text",
+   "id": "after_countdown_button",
+   "label": "Button",
+   "default": "Ready. Set. Shop!",
+   "info": "Links to collection or product url."
+  },
+  {
+   "type": "text",
+   "id": "after_heading",
+   "label": "Heading",
+   "default": "The new drop is finally here.",
+   "info": "Links to collection or product url."
+  },
+  {
+    "type": "header",
+    "content": "Section styles"
+  },
+  {
+    "type": "checkbox",
+    "id": "full_width",
+    "label": "Enable full width",
+    "default":true
+  },
+  {
+    "type": "select",
+    "id": "section_padding",
+    "label": "Section spacing",
+    "options": [
+      {
+        "value": "top",
+        "label": "Top"
+      },
+      {
+        "value": "bottom",
+        "label": "Bottom"
+      },
+      {
+        "value": "both",
+        "label": "Both"
+      },
+      {
+        "value": "none",
+        "label": "None"
+      }
+    ],
+    "default": "bottom"
+  }],
+  "presets": [{
+    "name": "Countdown"
+  }],
+  "templates": ["404", "article", "blog", "cart", "collection", "list-collections", "index", "page", "product", "search"]
+}
+{% endschema %}

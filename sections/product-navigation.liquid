@@ -1,0 +1,67 @@
+{% comment %} Product Navigation Logic {% endcomment %}
+{%- liquid
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+-%}
+
+{% comment %}  Product Navigation Template {% endcomment %}
+<div class="product-breadcrumb__nav grid__wrapper global__section {{ section_padding }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="product-breadcrumbs"
+  data-section-loaded="false"
+  {%- if collection == blank -%}style="display: none;"{%- endif -%}>
+
+  {% render 'product-nav',
+    collection: collection,
+    product: product %}
+
+</div>
+{% schema %}
+{
+  "name": "Product navigation",
+  "tag": "section",
+  "class": "dynamic-section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Only shows when viewing a product within a collection."
+    },
+    {
+      "type": "select",
+      "id": "section_padding",
+      "label": "Section spacing",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "both"
+    }
+  ],
+  "presets": [{
+    "name": "Product Navigation"
+  }],
+  "templates": ["product"]
+}
+{% endschema %}

@@ -1,0 +1,212 @@
+{%- liquid
+
+  assign article_comments = false
+  assign article_date = false
+  assign article_author = false
+  assign article_tags = false
+  assign top_count = 0
+
+  if blog.comments_enabled? and section.settings.show_comments
+    assign article_comments = true
+    assign top_count = top_count | plus: 1
+  endif
+  if section.settings.show_date
+    assign article_date = true
+    assign top_count = top_count | plus: 1
+  endif
+  if section.settings.show_author
+    assign article_author = true
+    assign top_count = top_count | plus: 1
+  endif
+  if section.settings.show_tags
+    assign article_tags = true
+  endif
+
+  if top_count == 3
+    assign top_grid_width = 'span-4 sm-span-4'
+  elsif top_count == 2
+    assign top_grid_width = 'span-6 sm-span-6'
+  elsif top_count == 1
+    assign top_grid_width = 'span-12 sm-span-12'
+  endif
+
+-%}
+
+{% if blog == blank %}
+  {% for i in (1..items_per_page) %}
+    <article class="article-loop__item {{ items_per_row }} relative article_wrapper--has-image {% if side_by_side %}article_wrapper--side-by-side grid__wrapper nest edge cg5{% endif %}">
+      <div class="article__img-wrapper {% if side_by_side %}span-4 push-1 auto v-center{% else %} inline-block mb0{% endif %}">
+        <a class="article-loop__placeholder-img demo-1 color-2 inline-block mb0" href="#">
+          {{ 'image' | placeholder_svg_tag: 'placeholder-svg' }}
+        </a>
+      </div>
+      <div class="{% if side_by_side %}span-6 auto v-center{% endif %} article-loop__excerpt excerpt">
+        <div class="article__rte--text border-left border-top border-right px4 pt6 pb2 mb0">
+          <h3 class="post-title mb3">
+            <a class="no-hover" href="#">
+              Add a title or tagline
+            </a>
+          </h3>
+          <p class="article__rte--excerpt rte">
+            Share blog posts, products, or promotions with your customers. Use this text to describe products, share details on availability and style, or as a space to display recent reviews or FAQs.
+          </p>
+        </div>
+
+        <div class="article__rte--details grid__wrapper edge cg0 rg0 border mb4">
+            {%- if article_date -%}
+              <p class="article__rte--date posted {{ top_grid_width }} auto m0 v-center a-center {% unless top_count == 1 %}border-right{% endunless %} px2 py2">
+                {{ 'now' | date: "%a, %b %d, %y" }}
+              </p>
+            {%- endif -%}
+            {%- if article_author -%}
+              <p class="article__rte--author {{ top_grid_width }} auto m0 v-center a-center {% unless top_count == 1 %}border-right{% endunless %} px2 py2">
+                {{ 'blogs.article.by' | t }} Author Name
+              </p>
+            {%- endif -%}
+            {%- if article_comments -%}
+              <div class="article__rte--comments {{ top_grid_width }} auto m0 v-center a-center px2 py2">
+                <a class="mb0" href="#">
+                  {{ 'blogs.comments.comments_with_count' | t: count: i }}
+                </a>
+              </div>
+            {%- endif -%}
+
+            <div class="{% unless top_count == 0 %}border-top{% endunless %} span-12 auto grid__wrapper edge cg0 rg0">
+              {%- liquid
+
+                if article_tags
+                  assign bottom_grid_width = 'span-6 sm-span-6'
+                else
+                  assign bottom_grid_width = 'span-12 sm-span-12'
+                endif
+
+              -%}
+
+              {%- if article_tags -%}
+                <div class="article__rte--tags {{ bottom_grid_width }} auto m0 v-center px2 py2 border-right">
+                  <p class="mb0">
+                    {{ 'blogs.article.tagged' | t }}:&nbsp;
+                    <a href="">Tag 1</a>,&nbsp;<a href="">Tag 2</a>,&nbsp;<a href="">Tag 3</a>
+                  </p>
+                </div>
+              {%- endif -%}
+
+              <a class="article__rte--cta {{ bottom_grid_width }} auto m0 v-center a-center px2 py2" href="#">
+                {{ 'blogs.article.read_more' | t }}
+              </a>
+            </div>
+          </div>
+      </div>
+    </article>
+  {% endfor %}
+{% else %}
+  {% for article in blog.articles limit: items_per_page %}
+    {%- liquid
+      assign has_image = false
+      if article.image or article.content contains '<img'
+        assign has_image = true
+      endif
+
+      if has_image and side_by_side
+        assign image_width = 'span-4 push-1 auto v-center'
+        assign excerpt_width = 'span-6 auto v-center'
+      elsif has_image == false and side_by_side
+        assign image_width = 'span-8 push-2 auto v-center'
+        assign excerpt_width = 'span-8 push-2 auto v-center'
+      endif
+    -%}
+    <article class="article-loop__item  {{ items_per_row }} relative {% if has_image %}article_wrapper--has-image{% endif %} {% if side_by_side %}article_wrapper--side-by-side grid__wrapper nest edge cg5 rg0{% endif %}">
+      <div class="{{ image_width }} relative">
+        {%- if article.image -%}
+          {%- liquid
+
+            assign has_image = true
+            assign sm_render = '100vw'
+            assign md_render = 'calc(100vw / ' | append: grid_items | append: ')'
+            assign lg_render = 'calc(1600px / ' | append: grid_items | append: ')'
+
+          -%}
+          <a class="article__img-wrapper inline-block mb0" href="{{ article.url }}">
+            {% render 'helper-image',
+               type: article.image,
+               sm_render: sm_render
+               md_render: md_render,
+               lg_render: lg_render %}
+          </a>
+        {%- elsif article.content != blank and article.content contains "<img" -%}
+          {%- assign has_image = true -%}
+          {%- assign src = article.content | split: ' src="' | last | split: '"' | first -%}
+          <a class="article__img-wrapper is_content_image inline-block mb0" href="{{ article.url }}">
+            <div class="box-ratio" style="padding-bottom: 100%;">
+              <img src="{{ src }}"
+                width="800"
+                height="800"
+                alt="{{ article.title }}"
+                loading="lazy">
+            </div>
+          </a>
+        {%- else -%}
+          {%- assign has_image = false -%}
+        {%- endif -%}
+      </div>
+      <div class="{{ excerpt_width }} article-loop__excerpt">
+        <div class="article__rte--text border-left border-top border-right px4 pt6 pb2 mb0">
+          <h3 class="post-title mb3">
+            <a class="no-hover" href="{{ article.url }}">
+              {{ article.title }}
+            </a>
+          </h3>
+          <p class="article__rte--excerpt rte">
+            {{ article.excerpt_or_content | strip_html | truncatewords: 30 }}
+          </p>
+        </div>
+
+        <div class="article__rte--details grid__wrapper edge cg0 rg0 border mb4">
+          {%- if article_date -%}
+            <p class="article__rte--date posted {{ top_grid_width }} auto m0 v-center a-center {% unless top_count == 1 %}border-right{% endunless %} px2 py2">
+              {{ article.published_at | date: "%a, %b %d, %y" }}
+            </p>
+          {%- endif -%}
+          {%- if article_author -%}
+            <p class="article__rte--author {{ top_grid_width }} auto m0 v-center a-center {% unless top_count == 1 %}border-right{% endunless %} px2 py2">
+              {{ 'blogs.article.by' | t }} {{ article.author }}
+            </p>
+          {%- endif -%}
+          {%- if article_comments -%}
+            <div class="article__rte--comments {{ top_grid_width }} auto m0 v-center a-center px2 py2">
+              <a class="mb0" href="{{ article.comment_post_url }}">
+                {{ 'blogs.comments.comments_with_count' | t: count: article.comments_count }}
+              </a>
+            </div>
+          {%- endif -%}
+
+          {%- liquid
+
+            if article_tags and article.tags.size > 0
+              assign bottom_grid_width = 'span-6 sm-span-6'
+            else
+              assign bottom_grid_width = 'span-12 sm-span-12'
+            endif
+
+          -%}
+          <div class="{% unless top_count == 0 %}border-top{% endunless %} span-12 auto grid__wrapper edge cg0 rg0">
+            {%- if article_tags and article.tags.size > 0 -%}
+              <div class="article__rte--tags span-6 sm-span-6 auto m0 v-center px2 py2 border-right">
+                <p class="mb0">
+                  {{ 'blogs.article.tagged' | t }}:&nbsp;
+                  {%- for tag in article.tags -%}
+                    <a class="mb0" href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag }}</a>{% unless forloop.last %},{% endunless %}
+                  {%- endfor -%}
+                </p>
+              </div>
+            {%- endif -%}
+
+            <a class="article__rte--cta {{ bottom_grid_width }} auto m0 v-center a-center px2 py2" href="{{ article.url }}">
+              {{ 'blogs.article.read_more' | t }}
+            </a>
+          </div>
+        </div>
+      </div>
+    </article>
+  {% endfor %}
+{% endif %}

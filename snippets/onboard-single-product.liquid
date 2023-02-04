@@ -1,0 +1,236 @@
+{%- liquid
+
+   if product_type == 'featured_product'
+    assign gallery_width = 'span-6'
+    assign form_width = 'span-6'
+    assign blocks_padding = 'px6'
+   endif
+
+-%}
+
+<article
+  id="product-description"
+  class="product__section-right {{ form_width }} sm-span-12 auto grid__wrapper edge rg0 cg0">
+  {%- if notification -%}
+    <div class="product__section-notify-banner span-1 sm-span-1 auto v-center">
+      <p class="product__section-notification">
+        {{ section.settings.product_notification }}
+      </p>
+    </div>
+  {%- endif -%}
+  <div class="product__section-blocks-wrapper py7 {{ blocks_padding }} {{ form_grid }}">
+    {% for block in section.blocks %}
+      {% case block.type %}
+        {%- when 'product_metafield' -%}
+          <div class="product__block--metafield rte pt2 mb2" {{ block.shopify_attributes }}>
+            {{ block.settings.text }}
+          </div>
+        {%- when 'product_title' -%}
+          <h3 class="product__block--title lh2 pt2 mb2 h2" {{ block.shopify_attributes }}>
+            <a href="#" title="Product Title">Product Title</a>
+          </h3>
+        {%- when 'product_description' -%}
+          <div class="product__block--description rte pt2 mb2">
+            Share about twenty-four words from your product description if available. Give your customers a short peak into what this product is all about.
+            <a class="inline mb0 ml2" href="#">{{ 'collections.general.view_product_html' | t }}</a>
+          </div>
+        {%- when 'product_form' -%}
+          {%- liquid
+
+            assign show_quantity = block.settings.show_quantity
+            assign show_sku = block.settings.show_sku
+
+          -%}
+          <form class="product__form-container product_form relative">
+            <div class="product__block--form mt6" {{ block.shopify_attributes }}>
+              {% if show_sku %}
+                <div class="product__sku-container">
+                  <span class="product__sku-label">{{ 'customer.order.details.sku' | t }}: &nbsp;</span>
+                  <span class="product__sku-value js-variant-sku">SKU: 1234</span>
+                </div>
+              {% endif %}
+            </div>
+          </form>
+        {%- when 'product_buttons' -%}
+          <div class="product-form__buttons type--{{ product_type }} qty--{{ block.settings.show_quantity }} product__add-container mt4" data-product-buttons {{ block.shopify_attributes }}>
+            {%- liquid
+
+              if block.settings.show_quantity
+                assign price_width = 'span-2 sm-span-5 auto'
+                assign button_width = 'span-5 sm-span-10 auto'
+              else
+                assign price_width = 'span-3 sm-span-3 auto'
+                assign button_width = 'span-7 sm-span-7 auto'
+              endif
+
+            -%}
+            <div class="product__add-inner-container mt4{% unless settings.product_show_payment_button %} mb4{% endunless %}">
+              {% if block.settings.show_quantity %}
+                <div class="product-form__add-to-cart--qty product__quantity m0 span-3 sm-span-5 auto">
+                  <a class="product__quantity-down downer js-qty-down vib-center no-js-hidden" href="{{ product.url }}" tabindex="0" aria-label="Decrease">
+                    {% render 'snip-icons',
+                       wrapper: '.product__quantity',
+                       type: 'apollo',
+                       icon: 'minus',
+                       size: '10px',
+                       fill: 'var(--text-color)',
+                       hover: 'var(--text-color)' %}
+                  </a>
+                  <label  for="{{ section.id }}-productQty-{{ product.id }}">
+                    <input id="{{ section.id }}-productQty-{{ product.id }}"
+                    min="1"
+                    data-limit="{% if current_variant.inventory_management == 'shopify' %}{% unless current_variant.inventory_policy == 'continue' %}{{ current_variant.inventory_quantity }}{% endunless %}{% endif %}"
+                    type="text" name="quantity"
+                    class="product__quantity-input vib-center"
+                    value="1" />
+                    <span class="visually-hidden">{{ 'products.product.quantity' | t }}</span>
+                  </label>
+                  <a class="product__quantity-up js-qty-up up vib-center no-js-hidden" href="{{ product.url }}" tabindex="0" aria-label="Increase">
+                    {% render 'snip-icons',
+                       wrapper: '.product__quantity',
+                       type: 'apollo',
+                       icon: 'plus',
+                       size: '10px',
+                       fill: 'var(--text-color)',
+                       hover: 'var(--text-color)' %}
+                  </a>
+                </div>
+              {% endif %}
+
+              <div class="product-form__add-to-cart--price {{ price_width }} v-center a-center" data-product-price>
+                <p class="price-item--regular mb0" aria-label="{{ 'products.general.regular_price' | t }}" data-regular-price>
+                  $11.00
+                </p>
+              </div>
+
+              <button
+               type="submit"
+               name="add"
+               class="product-form__add-to-cart--text {{ button_width }} ajax-submit js-ajax-submit add-item add m0">
+                   {{ call_to_action }}
+              </button>
+            </div>
+          </div>
+        {%- when 'text_with_icon' -%}
+          {%- liquid
+
+              assign has_image = false
+              assign has_link = false
+              assign has_text = false
+
+              if block.settings.text != blank
+                assign text = block.settings.text | escape
+                assign has_text = true
+              endif
+
+              if block.settings.image != blank
+                assign img_url = block.settings.image | img_url: '80x'
+                assign has_image = true
+              endif
+
+              if block.settings.link != blank
+                assign has_link = true
+                assign link = block.settings.link
+              endif
+
+            -%}
+
+          <div class="product-form__text-icon pt2 mb2" {{ block.shopify_attributes }}>
+            {% unless has_image %}
+              <div class="product-form__text-icon--icon mr1 lh0">
+                {% render 'snip-icons',
+                   wrapper: '.product-form__text-icon',
+                   type: 'theme',
+                   icon: block.settings.icon,
+                   size: '20px',
+                   fill: 'var(--text-color)',
+                   hover: 'var(--text-color)' %}
+              </div>
+            {% endunless %}
+            {% if has_image %}
+              <div class="product-form__text-icon--image mr1 lh0">
+                <img src="{{ img_url }}" alt="{{ block.settings.image.alt }}">
+              </div>
+            {% endif %}
+            {% if has_text %}
+              <div class="product-form__text-icon--content rte mb0">
+                {% if has_link %}<a href="{{ link }}" title="{{ text }}">{% endif %}
+                  {{ text }}
+                {% if has_link %}</a>{% endif %}
+              </div>
+            {% endif %}
+          </div>
+        {%- when 'social_share' -%}
+          <div class="product-template__social-share mt2 mb2 inline-block" {{ block.shopify_attributes }}>
+            {% render 'snip-social-sharing',
+              share_title: product.title,
+              share_permalink: product.url,
+              share_image: product %}
+          </div>
+    
+        {%- when 'metafield_popup' -%}
+          <div class="product__block--metafield pt2 mb2">
+            
+            {% if block.settings.popup_label != blank %}
+            
+              <button class="btn-as-link js-modal-open underline pt2 mb2" type="button" name="button" data-wau-modal-target="product-modal--{{ forloop.index }}" {{ block.shopify_attributes }}>
+                {{ block.settings.popup_label }}
+              </button>
+            
+              <div data-wau-modal-content="product-modal--{{ forloop.index }}" style="display: none;">
+                {% if block.settings.page != blank %}
+                  {% assign feat_page = pages[block.settings.page] %}
+                  {{ feat_page.content }}
+                {% else %}
+                
+                  <div class="rte">
+                    {{ block.settings.popup_metafield_content }}
+                  </div><!-- /.rte -->
+                {% endif %}
+                
+              </div>
+            {% endif %}
+            
+          </div>
+    
+    
+    
+        {%- when 'rating' -%}
+         <div class="product__section--rating-wrapper pt2 mb2">
+           {% liquid
+            assign rating_decimal = 0
+            assign decimal = product.metafields.reviews.rating.value.rating | modulo: 1
+            if decimal >= 0.3 and decimal <= 0.7
+             assign rating_decimal = 0.5
+           elsif decimal > 0.7
+             assign rating_decimal = 1
+            endif
+           %}
+           <div class="product__section-rating" role="img" aria-label="{{ 'accessibility.star_reviews_info' | t: rating_value: product.metafields.reviews.rating.value, rating_max: product.metafields.reviews.rating.value.scale_max }}">
+             <span aria-hidden="true" class="product__section-rating-star color-icon" style="--rating: 4; --rating-max: 5; --rating-decimal: 1;">
+             </span>
+           </div>
+           <p class="product__section-rating-text caption">
+             <span aria-hidden="true">4 / 5</span>
+           </p>
+           <p class="product__section-rating-count caption">
+             <span aria-hidden="true">(12)</span>
+             <span class="visually-hidden">12 {{ "accessibility.total_reviews" | t }}</span>
+           </p>
+         </div>
+        {%- when '@app' -%}
+          <div class="product__block--app product__section--app" {{ block.shopify_attributes }}>
+            {% render block %}
+          </div>
+      {% endcase %}
+    {% endfor %}
+  </div>
+</article>
+<article
+id="product-photos"
+class="product__section-images product-gallery__wrapper {{ gallery_width }} sm-span-12 auto v-start js-product-gallery single_image--{{ is_single_image }}"
+data-product-single-media-group
+data-product-gallery
+data-gallery-config='{{ product_gallery_config }}'>
+<span class="demo-1 color-2">{{ 'product-1' | append: current | placeholder_svg_tag: 'placeholder-svg' }}</span>
+</article>

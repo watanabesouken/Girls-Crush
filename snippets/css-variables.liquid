@@ -1,0 +1,215 @@
+{%- liquid
+  assign main_font = settings.main_font
+  assign nav_font = settings.nav_font
+  assign heading_font = settings.heading_font
+  assign main_font_bold = main_font | font_modify: 'weight', 'bold'
+  assign main_font_italic = main_font | font_modify: 'style', 'italic'
+  assign main_font_bold_italic = main_font_bold | font_modify: 'style', 'italic'
+%}
+
+{% style %}
+
+{{ main_font | font_face: font_display: 'swap' }}
+{{ main_font_bold | font_face: font_display: 'swap' }}
+{{ main_font_italic | font_face: font_display: 'swap' }}
+{{ main_font_bold_italic | font_face: font_display: 'swap' }}
+{{ heading_font | font_face: font_display: 'swap' }}
+{{ nav_font | font_face: font_display: 'swap' }}
+
+{%- liquid
+  case settings.heading_spacing
+    when 0
+      assign heading_spacing = '0px'
+    when 1
+      assign heading_spacing = '0.5px'
+    when 2
+      assign heading_spacing = '1px'
+    when 3
+      assign heading_spacing = '1.5px'
+    when 4
+      assign heading_spacing = '2px'
+    when 5
+      assign heading_spacing = '2.5px'
+    when 6
+      assign heading_spacing = '3px'
+  endcase
+  case settings.nav_spacing
+    when 0
+      assign nav_spacing = '0px'
+    when 1
+      assign nav_spacing = '0.5px'
+    when 2
+      assign nav_spacing = '1px'
+    when 3
+      assign nav_spacing = '1.5px'
+    when 4
+      assign nav_spacing = '2px'
+    when 5
+      assign nav_spacing = '2.5px'
+    when 6
+      assign nav_spacing = '3px'
+  endcase
+  case settings.font_spacing
+    when 0
+      assign font_spacing = '0px'
+    when 1
+      assign font_spacing = '0.5px'
+    when 2
+      assign font_spacing = '1px'
+    when 3
+      assign font_spacing = '1.5px'
+    when 4
+      assign font_spacing = '2px'
+    when 5
+      assign font_spacing = '2.5px'
+    when 6
+      assign font_spacing = '3px'
+  endcase
+  case settings.button_spacing
+    when 0
+      assign buttons_spacing = '0px'
+    when 1
+      assign buttons_spacing = '0.5px'
+    when 2
+      assign buttons_spacing = '1px'
+    when 3
+      assign buttons_spacing = '1.5px'
+    when 4
+      assign buttons_spacing = '2px'
+    when 5
+      assign buttons_spacing = '2.5px'
+    when 6
+      assign buttons_spacing = '3px'
+  endcase
+  assign nav_transform = 'unset'
+  if settings.nav_transform
+    assign nav_transform = 'uppercase'
+  endif
+
+-%}
+
+:root {
+  --heading-family: {{ heading_font.family }};
+  --heading-weight: {{ heading_font.weight }};
+  --heading-style: {{ heading_font.style }};
+  --heading-spacing: {{ heading_spacing }};
+  --heading-align: {{ settings.section_title_align }};
+
+  --main-family: {{ main_font.family }};
+  --main-weight: {{ main_font.weight }};
+  --main-style: {{ main_font.style }};
+  --main-spacing: {{ font_spacing }};
+
+  --nav-family: {{ nav_font.family }};
+  --nav-weight: {{ nav_font.weight }};
+  --nav-style: {{ nav_font.style }};
+  --nav-spacing: {{ nav_spacing }};
+  --nav-transform: {{ nav_transform }};
+
+  --font-size: {{ settings.font_size}}px;
+  --nav-size: {{ settings.nav_size }}px;
+  --h1-size: {{ settings.h1_size }}px;
+  --h2-size: {{ settings.h2_size }}px;
+  --h3-size: {{ settings.h3_size }}px;
+
+  --font-size-sm: calc({{ settings.font_size}}px - 2px);
+
+  --buttons-transform: uppercase;
+  --buttons-border-weight: 1px;
+  --buttons-corners: 0;
+  --buttons-height: 48px;
+  --buttons-spacing: {{ buttons_spacing }};
+  --form-border-weight: 1px;
+
+  --slideout-desktop: 550px;
+  --slideout-desktop-n: -550px;
+  --slideout-mobile: 350px;
+  --slideout-mobile-n: -350px;
+
+  --keyboard-focus: {{ settings.keyboard_focus }};
+  --keyboard-border-style: {{ settings.focus_border_style }};
+  --keyboard-border-weight: {{ settings.focus_border_weight }}px;
+  --keyboard-border-offset-weight: -{{ settings.focus_border_weight }}px;
+
+  --scheme-1-bg: {{ settings.scheme_1_bg }};
+  --scheme-1-text: {{ settings.scheme_1_text }};
+  --scheme-1-hover: {{ settings.scheme_1_hover }};
+
+  --scheme-2-bg: {{ settings.scheme_2_bg }};
+  --scheme-2-text: {{ settings.scheme_2_text }};
+  --scheme-2-hover: {{ settings.scheme_2_hover }};
+
+  --scheme-3-bg-light: {{ settings.scheme_3_bg | color_lighten: 20 }};
+  --scheme-3-bg: {{ settings.scheme_3_bg }};
+  --scheme-3-text: {{ settings.scheme_3_text }};
+  --scheme-3-hover: {{ settings.scheme_3_hover }};
+
+  --background: {{ settings.background }};
+  --background-accent: {{ settings.background | color_darken: 3 }};
+  --background-dark: {{ settings.background | color_darken: 20 }};
+  --text-color-light: {{ settings.text_color | color_lighten: 20 }};
+  --text-color: {{ settings.text_color }};
+  --dotted-color: {{ settings.border_color }};
+  --sale-color: {{ settings.sale_color }};
+  --sale-color-dark: {{ settings.sale_color | color_darken: 20 }};
+  --sale-color-light: {{ settings.sale_color | color_lighten: 20 }};
+  --announcement-bg: {{ settings.announcement_bg }};
+  --announcement-text: {{ settings.announcement_text }};
+  --announcement-hover: {{ settings.announcement_hover }};
+  --header-bg: {{ settings.header_bg }};
+  --header-text: {{ settings.header_text }};
+  --header-text-over: {{ settings.header_text_over }};
+  --header-text-over-dark: {{ settings.header_text_over | color_darken: 20 }};
+  --header-text-over-light: {{ settings.header_text_over | color_lighten: 40 }};
+  --header-hover: {{ settings.header_hover }};
+  --button-bg: {{ settings.button_bg }};
+  --button-text: {{ settings.button_text }};
+  --button-hover: {{ settings.button_hover }};
+  --secondary-button-bg: {{ settings.secondary_button_bg }};
+  --secondary-button-text: {{ settings.secondary_button_text }};
+  --secondary-button-hover: {{ settings.secondary_button_hover }};
+  --directional-bg: {{ settings.directional_bg }};
+  --directional-text: {{ settings.directional_text }};
+  --directional-hover: {{ settings.directional_hover }};
+  --footer-bg: {{ settings.footer_bg }};
+  --footer-text: {{ settings.footer_text }};
+  --footer-hover: {{ settings.footer_hover }};
+  --error-msg-dark: #BF3333;
+  --error-msg-light: {{ '#BF3333' | color_lighten: 30 }};
+  --success-msg-dark: #556c5a;
+  --success-msg-light: {{ '#556c5a' | color_lighten: 30 }};
+  --slideshow-btn-height: 34px;
+  --slideshow-btn-width: 34px;
+  --masonry-padding: 20px;
+  --section-padding: {{ settings.section_padding }}px;
+
+  --star-active: {{ settings.text_color | color_to_rgb }};
+  --star-inactive: {{ settings.text_color | color_lighten: 30 | color_to_rgb }};
+
+  --countdown-size: 64px;
+}
+.ajax-cart__free-shipping {
+  background-color: var(--scheme-{{ settings.free_shipping_scheme }}-bg);
+  color: var(--scheme-{{ settings.free_shipping_scheme }}-text);
+}
+.ajax-cart__free-shipping p,
+.ajax-cart__free-shipping a,
+.ajax-cart__free-shipping small,
+.ajax-cart__free-shipping span {
+  color: var(--scheme-{{ settings.free_shipping_scheme }}-text);
+}
+@media (max-width: 967px) {
+  :root {
+    --countdown-size: 44px;
+  }
+}
+@media (max-width: 740px) {
+  :root {
+    --font-size: calc({{ settings.font_size }}px - ({{ settings.font_size }}px * 0.15));
+    --nav-size: calc({{ settings.nav_size }}px - ({{ settings.nav_size }}px * 0.15));
+    --h1-size: calc({{ settings.h1_size }}px - ({{ settings.h1_size }}px * 0.15));
+    --h2-size: calc({{ settings.h2_size }}px - ({{ settings.h2_size }}px * 0.15));
+    --h3-size: calc({{ settings.h3_size }}px - ({{ settings.h3_size }}px * 0.15));
+  }
+}
+{% endstyle %}

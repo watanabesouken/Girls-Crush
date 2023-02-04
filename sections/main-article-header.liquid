@@ -1,0 +1,174 @@
+{% comment %} Article Header Logic {% endcomment %}
+{%- liquid
+
+  if article.image
+    assign article_image = true
+    assign title_width = 'span-4 md-span-5 auto a-left'
+    assign excerpt_width = 'span-10 md-span-9 auto v-center a-left'
+  else
+    assign article_image = false
+    assign title_width = 'span-12 auto a-center'
+    assign excerpt_width = 'span-8 push-2 auto a-center'
+  endif
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+-%}
+
+{% comment %} Article Header Template {% endcomment %}
+<section
+  class="article-header global__section {{ section_padding }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="article-template"
+  data-section-loaded="false">
+
+  <div class="article-header--inner grid__wrapper edge cg10 sm-cg0">
+    <div class="article-template__title py8 mt10 px8 sm-mb5 {{ title_width }}">
+      <div class="sticky--content">
+        {%- if section.settings.show_date -%}
+          <p class="article__rte--date mb2">{{ article.published_at | date: "%a, %b %d, %y" }}</p>
+        {%- endif -%}
+        <h1>{{ article.title }}</h1>
+        {%- if article.excerpt_or_content != blank -%}
+          <div class="article__rte--excerpt pt5 grid__wrapper edge">
+            <div class="span-2 md-span-3 auto sm-hide v-center a-left{% unless article_image %} hide{% endunless %}">
+              {% render 'snip-icons',
+                 wrapper: '.article__rte--excerpt',
+                 type: 'theme',
+                 icon: 'arrow-down',
+                 size: '88px',
+                 classes: 'm0 cursor-unset',
+                 fill: 'var(--text-color)',
+                 hover: 'var(--text-color)' %}
+            </div>
+            <div class="{{ excerpt_width }}">
+              <p class="pl4 sm-pl0 mb0">{{ article.excerpt_or_content | strip_html | truncatewords: 30 }}</p>
+            </div>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+    {% if article_image %}
+      <div class="article-template__image span-8 md-span-7 auto">
+        {% render 'helper-image',
+           type: article.image,
+           sm_render: '100vw'
+           md_render: 'calc(100vw * 0.75)',
+           lg_render: 'calc(100vw * 0.75)' %}
+      </div>
+    {% endif %}
+  </div>
+  <script type="text/javascript">
+
+  </script>
+  <style>
+    @media (min-width: 768px) {
+      .article-template__image .box-ratio {
+        padding-bottom: 100% !important;
+      }
+      .article-template__image .box-ratio img {
+        object-fit: cover;
+        width: 100%;
+        height: calc(100vw * 0.75);
+      }
+      {% if article_image %}
+        .sticky--content {
+          position: -webkit-sticky;
+          position: sticky;
+          top: 25px;
+        }
+      {% endif %}
+    }
+    {% unless section.settings.color_scheme == 'none' %}
+      .article-header,
+      .article-header h1,
+      .article-header p,
+      .article-header a {
+        color: var(--scheme-{{ section.settings.color_scheme }}-text) !important;
+      }
+      .article-header svg .hover-fill,
+      .article-header svg:hover .hover-fill  {
+        fill: var(--scheme-{{ section.settings.color_scheme }}-text) !important;
+      }
+      .article-header a:hover {
+        color: var(--scheme-{{ section.settings.color_scheme }}-hover) !important;
+      }
+      .article-header--inner {
+        background-color: var(--scheme-{{ section.settings.color_scheme }}-bg) !important;
+      }
+    {% endunless %}
+  </style>
+</section>
+
+
+
+{% schema %}
+{
+"name": "Article header",
+"class": "article-header--wrapper",
+"settings":
+  [
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show published date",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default":"3",
+      "options": [
+        {
+          "value": "none",
+          "label": "None"
+        },
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        },
+        {
+          "value": "3",
+          "label": "3"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "section_padding",
+      "label": "Section spacing",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "bottom"
+    }
+  ]
+}
+{% endschema %}

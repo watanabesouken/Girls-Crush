@@ -1,0 +1,211 @@
+{% comment %} Blog Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-main-blog.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-main-blog.css' | asset_url }}"></noscript>
+
+{% comment %} Blog Logic {% endcomment %}
+{%- liquid
+  assign side_by_side = false
+  case section.settings.items_per_row
+  when 4
+    assign items_per_row = 'span-3 auto'
+  when 3
+    assign items_per_row = 'span-4 auto'
+  when 2
+    assign items_per_row = 'span-6 auto'
+  when 1
+    assign items_per_row = 'span-12'
+    assign side_by_side = true
+  endcase
+
+  assign items_per_page = section.settings.items_per_page
+
+-%}
+
+{% comment %} Blog Template {% endcomment %}
+<section
+  class="blog-template"
+  data-section-id="{{ section.id }}"
+  data-section-type="blog-template"
+  data-section-loaded="false">
+  {% paginate blog.articles by items_per_page %}
+
+    <div class="grid__wrapper rg9 pb8">
+
+      {% if current_tags %}
+        <ul class="blog-template__tags--group mb0 span-6 auto grid__wrapper edge cg0 rg0 border a-center">
+          <li class="blog-template__tags--label span-2 sm-span-2 auto px2 py2 border-right">
+            <p class="mb0">{{ 'blogs.article.tagged' | t }}</p>
+          </li>
+          <li class="blog-template__tags--tag span-4 sm-span-4 auto px2 py2 border-right">
+            <p class="mb0">
+              {%- for tag in current_tags -%}
+                {{ tag | link_to_remove_tag: tag }}{%- unless forloop.last -%}, &nbsp;{%- endunless -%}
+              {%- endfor -%}
+            </p>
+          </li>
+          <li class="blog-template__tags--clear span-6 sm-span-6 px2 py2 auto">
+            <a classs="mb0" href="{{ blog.url }}">
+              {% render 'snip-icons',
+                 wrapper: '.blog-template__tags--clear',
+                 type: 'theme',
+                 icon: 'close',
+                 size: '10px',
+                 classes: 'm0 vib-center',
+                 fill: 'var(--text-color)',
+                 hover: 'var(--text-color)' %}
+               <span class="vib-center">{{ 'collections.general.clear_all_tags' | t }}</span>
+             </a>
+           </li>
+        </ul>
+      {% endif %}
+
+      {% render 'article-loop',
+          blog: blog,
+          grid_items: section.settings.items_per_row,
+          items_per_row: items_per_row,
+          side_by_side: side_by_side,
+          paginate: paginate ,
+          items_per_page: items_per_page %}
+
+    {% if paginate.pages > 1 %}
+      <div class="span-12 auto">
+        {% render 'snip-pagination', paginate: paginate %}
+      </div>
+    {% endif %}
+
+    </div>
+
+  {% endpaginate %}
+
+  <style>
+    .blog-template .article-loop__excerpt {
+      text-align: {{ section.settings.text_align }};
+    }
+    .blog-template .article__img-wrapper .box-ratio {
+      {%- if section.settings.image_ratio == 'square' -%}
+        padding-bottom: 100% !important;
+      {%- elsif section.settings.image_ratio == 'vertical' -%}
+        padding-bottom: 125% !important;
+      {%- elsif section.settings.image_ratio == 'horizontal' -%}
+        padding-bottom: 66% !important;
+      {%- endif -%}
+      position: relative;
+    }
+    {%- unless section.settings.image_ratio == 'natural' -%}
+      .blog-template .article__img-wrapper .box-ratio img {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        height: 100%;
+        object-fit: cover;
+      }
+      @media (min-width: 768px) {
+        .blog-template .article__img-wrapper .box-ratio img {
+          width: calc((100vw / {{ section.settings.items_per_row }}) + 40px);
+        }
+      }
+      @media (max-width: 767px) {
+        .blog-template .article__img-wrapper .box-ratio img {
+          width: 100vw;
+        }
+      }
+    {%- endunless -%}
+    .blog-template .article__img-wrapper.is_content_image .box-ratio img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      height: 100%;
+      object-fit: cover;
+    }
+    @media (min-width: 768px) {
+      .blog-template .article__img-wrapper.is_content_image .box-ratio img {
+        width: calc((100vw / {{ section.settings.items_per_row }}) + 40px);
+      }
+    }
+    @media (max-width: 767px) {
+      .blog-template .article__img-wrapper.is_content_image .box-ratio img {
+        width: 100vw;
+      }
+    }
+  </style>
+</section>
+
+{% schema %}
+{
+  "name": "Blog",
+  "settings": [
+    {
+      "type": "range",
+      "id": "items_per_page",
+      "min": 2,
+      "max": 48,
+      "step": 1,
+      "label": "Posts per page",
+      "default": 20
+    },
+    {
+      "type": "range",
+      "id": "items_per_row",
+      "min": 1,
+      "max": 3,
+      "step": 1,
+      "label": "Posts per row",
+      "default": 1
+    },
+    {
+      "type": "select",
+      "id": "text_align",
+      "label": "Text alignment",
+      "default": "left",
+      "options": [
+        {
+          "value": "center",
+          "label": "Center"
+        },
+        {
+          "value": "left",
+          "label": "Left"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "default": "vertical",
+      "options": [
+         { "value": "vertical", "label": "Vertical images"},
+         { "value": "horizontal", "label": "Horizontal images"},
+         { "value": "square", "label": "Square images"},
+         { "value": "natural", "label": "Natural images"}
+      ],
+      "label": "Image ratio"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "Show published date",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "Show author",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_comments",
+      "label": "Show comment count",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_tags",
+      "label": "Show tags",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

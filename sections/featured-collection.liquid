@@ -1,0 +1,255 @@
+{% comment %} Featured Collection Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-featured-collection.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-featured-collection.css' | asset_url }}"></noscript>
+<link rel="preload" href="{{ 'component-product-grid.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'component-product-grid.css' | asset_url }}"></noscript>
+
+{% comment %} Featured Collection Logic {% endcomment %}
+{%- liquid
+  assign collection = collections[section.settings.collection]
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+  if settings.section_title_align == 'left'
+    assign heading_align = 'a-left'
+  else
+    assign heading_align = 'a-center'
+  endif
+
+  case section.settings.items_per_row
+  when 5
+    assign wrapper_class = 'wrapper-fifths'
+    assign grid_width = 'span-3 md-span-4 auto'
+  when 4
+    assign grid_width = 'span-3 md-span-4 auto'
+  when 3
+    assign grid_width = 'span-4 auto'
+  when 2
+    assign grid_width = 'span-6 auto'
+  when 1
+    assign grid_width = 'span-12'
+  endcase
+
+  if section.settings.mobile_items_per_row
+    assign mobile_items_per_row = 'sm-span-6'
+  else
+    assign mobile_items_per_row = 'sm-span-12'
+  endif
+
+  assign carousel = false
+  if section.settings.display_type == 'carousel'
+    assign carousel = true
+  endif
+
+  assign prod_limit = section.settings.items_per_page
+  assign items_per_row = section.settings.items_per_row
+
+  assign enough_to_wrap = true
+  if prod_limit <= items_per_row
+    assign enough_to_wrap = false
+  endif
+
+  if collection.products.size <= items_per_row
+    assign enough_to_wrap = true
+  endif
+
+  if collection == blank and prod_limit > items_per_row
+    assign enough_to_wrap = true
+  endif
+
+  case section.settings.items_per_row
+  when 2
+    assign prod_grid = 51
+    assign noJSGrid = 48.95
+  when 3
+    assign prod_grid = 34
+    assign noJSGrid = 31.25
+  when 4
+    assign prod_grid = 25.5
+    assign noJSGrid = 23.45
+  when 5
+    assign prod_grid = 20.4
+    assign noJSGrid = 18.35
+  endcase
+
+  if carousel
+    assign heading_width = 'span-12 auto sm-span-8'
+  else
+    assign heading_width = 'span-12 auto sm-span-12'
+  endif
+-%}
+
+{% capture carousel_config %}{
+  "wrapAround":{{ enough_to_wrap }},
+  "cellAlign": "left",
+  "dragThreshold":"15",
+  "draggable": {{ enough_to_wrap }},
+  "pauseAutoPlayOnHover":false,
+  "prevNextButtons":{{ enough_to_wrap }},
+  "pageDots": false,
+  "arrowShape": "M74.5,83.2c-0.4,0.6-1,0.9-1.6,0.9c-0.4,0-0.8-0.1-1.1-0.4L26,51.6c0,0-0.1-0.1-0.1-0.1c0,0-0.1-0.1-0.1-0.1c-0.1-0.1-0.1-0.2-0.2-0.2c0,0,0,0-0.1-0.1c0,0,0,0,0,0c0-0.1-0.1-0.1-0.1-0.2c0-0.1-0.1-0.1-0.1-0.2c0-0.1,0-0.1-0.1-0.2c0-0.1,0-0.1-0.1-0.2c0-0.1,0-0.1,0-0.2c0-0.1,0-0.1,0-0.2c0-0.1,0-0.1,0-0.2c0-0.1,0-0.1,0-0.2c0-0.1,0-0.1,0.1-0.2c0-0.1,0-0.1,0.1-0.2c0-0.1,0.1-0.1,0.1-0.2c0-0.1,0.1-0.1,0.1-0.2c0,0,0,0,0,0c0,0,0.1-0.1,0.1-0.1c0-0.1,0.1-0.1,0.1-0.2c0.1-0.1,0.1-0.1,0.2-0.1c0,0,0.1-0.1,0.1-0.1l45.8-32c0.9-0.6,2.2-0.4,2.8,0.5c0.6,0.9,0.4,2.2-0.5,2.8L30.6,50L74,80.4C74.9,81,75.1,82.3,74.5,83.2z"
+}{% endcapture %}
+
+
+{% comment %} Featured Collection Template {% endcomment %}
+<div
+  class="section-featured-collection featured-collection-{{ section.id }} global__section {{ section_padding }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="carousel"
+  data-section-loaded="false"
+  data-asset-url="{{ 'carousel.js' | asset_url }}"
+  data-items-per-page="{{ section.settings.items_per_page }}">
+
+  <div class="grid__wrapper relative section-featured-collection__wrapper--{%- if carousel -%}carousel{%- else -%}grid{%- endif -%}">
+    {% render 'snip-headings', grid: heading_width, classes: 'section-featured-collection__section-heading', align: heading_align, url: collection.url %}
+    <div class="featured-collection__wrapper--loop span-12{% if carousel %} js-carousel carousel-loaded--false{% endif %}" {%- if carousel -%}data-flickity='{{ carousel_config }}'{%- endif -%}>
+      {%- unless carousel -%}<div class="grid__wrapper edge cg6 rg6 {{ wrapper_class }}">{%- endunless -%}
+      {% if collection != blank %}
+        {% for product in collection.products limit: prod_limit %}
+          {% render 'product-loop',
+            carousel: carousel,
+            collection: collection,
+            product: product,
+            product_info_align: settings.product_grid_alignment,
+            grid_items: section.settings.items_per_row,
+            items_per_row: grid_width,
+            featured_collection: true,
+            mobile_items_per_row: mobile_items_per_row %}
+        {% endfor %}
+      {% else %}
+        {% for i in (1..prod_limit) %}
+          {% capture current %}{% cycle 1, 2, 3, 4, 5, 6 %}{% endcapture %}
+          {% assign placeholder = 'product-' | append: current %}
+          {% render 'onboard-product-loop',
+            carousel: carousel,
+            product_info_align: settings.product_grid_alignment,
+            grid_items: section.settings.items_per_row,
+            items_per_row: grid_width,
+            featured_collection: true,
+            placeholder: placeholder,
+            mobile_items_per_row: mobile_items_per_row %}
+        {% endfor %}
+      {% endif %}
+      {%- unless carousel -%}</div>{%- endunless -%}
+    </div>
+  </div>
+
+  <style>
+    @media (min-width: 768px) {
+      {% if carousel %}
+        .section--reloaded .featured-collection-{{ section.id }}[data-section-loaded="false"] .product-loop__item,
+        .featured-collection-{{ section.id }}[data-section-loaded="false"] .product-loop__item,
+        .no-js .featured-collection-{{ section.id }} .section-featured-collection__wrapper--carousel .product-loop__item,
+        .featured-collection-{{ section.id }} .carousel-loaded--false .product-loop__item {
+          width: {{ noJSGrid }}% !important;
+          margin-right: 2%;
+          margin-bottom: 2%;
+          display: inline-block !important;
+        }
+        .section--reloaded .featured-collection-{{ section.id }}[data-section-loaded="false"] .product-loop__item:nth-child({{ section.settings.items_per_row }}),
+        .featured-collection-{{ section.id }}[data-section-loaded="false"] .product-loop__item:nth-child({{ section.settings.items_per_row }}),
+        .no-js .featured-collection-{{ section.id }} .section-featured-collection__wrapper--carousel .product-loop__item:nth-child({{ section.settings.items_per_row }}) {
+          margin-right: 0;
+        }
+        .featured-collection-{{ section.id }} .section-featured-collection__wrapper--carousel .flickity-slider .product-loop__item {
+          width: {{ prod_grid }}% !important;
+          padding-right: 2%;
+          margin-right: 0;
+          display: block !important;
+        }
+      {% endif %}
+    }
+  </style>
+</div>
+{% schema %}
+{
+  "name": "Featured collection",
+  "tag": "section",
+  "class": "dynamic-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Featured collection"
+    },
+    {
+      "id": "collection",
+      "type": "collection",
+      "label": "Collection"
+    },
+    {
+       "type": "select",
+       "id": "display_type",
+       "options": [
+          { "value": "carousel", "label": "Carousel"},
+          { "value": "grid", "label": "Grid"}
+       ],
+       "default": "carousel",
+       "label": "Display type"
+    },
+    {
+      "type": "range",
+      "id": "items_per_row",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "label": "Products per row",
+      "default": 4
+    },
+    {
+      "type": "range",
+      "id": "items_per_page",
+      "min": 2,
+      "max": 30,
+      "step": 1,
+      "label": "Products shown",
+      "default": 7
+    },
+    {
+      "type": "checkbox",
+      "id": "mobile_items_per_row",
+      "label": "Two per row on mobile",
+      "default": false,
+      "info": "Default is one product per row when using grid."
+    },
+    {
+      "type": "select",
+      "id": "section_padding",
+      "label": "Section spacing",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "both"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Featured collection"
+    }
+  ],
+  "templates": ["404", "article", "blog", "cart", "collection", "list-collections", "index", "page", "product", "search", "customers/account"]
+}
+{% endschema %}

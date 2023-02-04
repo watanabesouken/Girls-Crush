@@ -1,0 +1,171 @@
+{% comment %} Announcement Bar Assets {% endcomment %}
+<link rel="preload" href="{{ 'section-announcement-bar.css' | asset_url }}" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="{{ 'section-announcement-bar.css' | asset_url }}"></noscript>
+
+{% comment %} Announcement Bar Logic {% endcomment %}
+{%- liquid
+
+  assign has_search = section.settings.show_search_toggle
+  assign has_language = section.settings.show_locale_selector
+  assign has_currency = section.settings.show_country_selector
+
+  assign has_text = false
+  if section.settings.announcement_text != blank
+    assign has_text = true
+  endif
+
+  if has_search or has_language or has_currency
+    if section.settings.alignment == 'center'
+      assign grid_width = 'span-6 push-3'
+    else
+      assign grid_width = 'span-9'
+    endif
+  else
+    assign grid_width = 'span-12'
+  endif
+
+-%}
+{% comment %} Announcement Template {% endcomment %}
+<div class="section-top-bar__wrapper js-top-bar"
+  data-section-id="{{ section.id }}"
+  data-section-type="announcement-bar">
+  <div class="grid__wrapper c0">
+    {%- if has_text -%}
+      <div class="section-top-bar__text a-{{ section.settings.alignment }} {{ grid_width }} sm-span-12 auto v-center">
+        <div class="px3 py3 sm-px1 sm-py1">{{ section.settings.announcement_text }}</div>
+      </div>
+    {%- endif -%}
+    {%- if has_search or has_language or has_currency -%}
+      <div class="section-top-bar__links span-3 sm-hide auto a-right v-center">
+        {%- if has_search -%}
+          <div class="section-top-bar__search v-center a-center no-js-hidden">
+            {%- if section.settings.search_style == 'icon' -%}
+                <a class="px1 py3 js-search-toggle mb0 inline-block" aria-label="{{ 'general.header.search' | t }}" href="{% if is_mobile %}{{ routes.search_url }}{% else %}#{% endif %}">
+                  {% render 'snip-icons',
+                     wrapper: '.header__cart-links--search',
+                     type: 'theme',
+                     icon: 'search',
+                     size: '16px',
+                     classes: 'mr0',
+                     fill: 'var(--announcement-text)',
+                     hover: 'var(--announcement-hover)' %}</a>
+              {%- else -%}
+                <a class="px1 py3 js-search-toggle mb0 inline-block text_toggle" aria-label="{{ 'general.header.search' | t }}" href="#">{{ 'general.header.search' | t }}</a>
+              {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+  <style>
+    .section-top-bar__wrapper a,
+    .section-top-bar__wrapper p,
+    .section-top-bar__wrapper p a,
+    .section-top-bar__wrapper button.disclosure__button,
+    .section-top-bar__wrapper .section-top-bar__search a {
+      color: var(--announcement-text) !important;
+      margin-bottom: 0 !important;
+    }
+    @media (min-width: 768px) {
+      .section-top-bar__wrapper a,
+      .section-top-bar__wrapper p,
+      .section-top-bar__wrapper p a,
+      .section-top-bar__wrapper button.disclosure__button,
+      .section-top-bar__wrapper .section-top-bar__search a {
+        font-size: {{ section.settings.announcement_text_size }}px !important;
+        line-height: 22px;
+      }
+    }
+  </style>
+</div>
+{% schema %}
+{
+  "name": "Announcement bar",
+  "settings": [
+    {
+       "type": "header",
+       "content": "Text"
+    },
+    {
+      "type": "range",
+      "id": "announcement_text_size",
+      "min": 12,
+      "max": 18,
+      "step": 1,
+      "unit": "px",
+      "label": "Text size",
+      "default": 13
+    },
+    {
+      "type": "richtext",
+      "id": "announcement_text",
+      "label": "Text announcement",
+      "default": "<p>Share a shop announcement or message</p>"
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "Text alignment",
+      "options": [
+        {
+          "value": "left",
+          "label": "Left"
+        },
+        {
+          "value": "center",
+          "label": "Center"
+        }
+      ],
+      "default": "center"
+    },
+    {
+       "type": "header",
+       "content": "Search"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search_toggle",
+      "label": "Show search toggle",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "search_style",
+      "label": "Toggle style",
+      "options": [
+        {
+          "value": "icon",
+          "label": "Icon"
+        },
+        {
+          "value": "text",
+          "label": "Text"
+        }
+      ],
+      "default": "icon"
+    },
+    {
+       "type": "header",
+       "content": "Language Selector",
+       "info": "To add a language, go to your [language settings.](/admin/settings/languages)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_locale_selector",
+      "label": "Enable language selector",
+      "default": true
+    },
+    {
+       "type": "header",
+       "content": "Country/Region Selector",
+       "info": "To add a country/region, go to your [payment settings.](/admin/settings/payments)"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_country_selector",
+      "label": "Enable country/region selector",
+      "default": true
+    }
+	]
+}
+{% endschema %}

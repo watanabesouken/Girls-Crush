@@ -1,0 +1,464 @@
+{% comment %} Product Header Logic {% endcomment %}
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign first_3d_model = product.media | where: "media_type", "model" | first
+
+  assign click_to_enlarge = section.settings.click_to_enlarge
+  assign enable_video_looping = false
+  assign icon_type = ''
+  assign icon_text = ''
+
+  if product.available
+    for col in product.collections
+      if col.handle == 'new'
+        assign icon_type = 'new'
+        assign icon_text =  'products.general.new' | t
+      endif
+    endfor
+    if product.price < product.compare_at_price
+      assign icon_type = 'sale-item'
+      assign icon_text =  'products.general.sale' | t
+    endif
+  else
+    assign icon_type = 'sold-out'
+    assign icon_text =  'products.general.sold' | t
+  endif
+
+  assign call_to_action = 'products.product.call_to_action' | t
+  assign coming_soon = false
+  assign date_now = "now" | date: "%s"
+
+  for collection in product.collections
+    if collection.metafields.my_fields.launch != blank
+     assign launch_date = collection.metafields.my_fields.launch.value | date: "%s"
+     assign launch_timestamp = launch_date | date: "%s"
+     assign icon_date =  collection.metafields.my_fields.launch.value | date: "%m/%d"
+     break
+    endif
+  endfor
+
+  if product.metafields.my_fields.launch != blank
+    assign launch_date = product.metafields.my_fields.launch.value | date: "%s"
+    assign launch_timestamp = launch_date | date: "%s"
+    assign icon_date =  product.metafields.my_fields.launch.value | date: "%m/%d"
+  endif
+
+  if launch_date != blank and launch_date > date_now
+    assign coming_soon = true
+    assign icon_type = 'coming-soon'
+    assign icon_text =  'general.sections.countdown.available_html' | t: date: icon_date
+    assign call_to_action = 'general.sections.countdown.notification_submit_long' | t
+  endif
+
+  assign accordion_active = false
+  for block in section.blocks
+    if block.type == 'accordion_content'
+      assign accordion_active = true
+      break
+    endif
+  endfor
+
+  if section.settings.gallery_size == 'medium'
+    assign text_width = 'span-6 sm-span-12 auto'
+    assign gallery_width = 'span-6 sm-span-12 auto'
+  elsif section.settings.gallery_size == 'large'
+    assign text_width = 'span-5 sm-span-12 auto'
+    assign gallery_width = 'span-7 sm-span-12 auto'
+  endif
+
+  assign section_padding = ''
+  if section.settings.section_padding == 'top'
+    assign section_padding = 'pb0'
+  elsif section.settings.section_padding == 'bottom'
+    assign section_padding = 'mt0'
+  elsif section.settings.section_padding == 'none'
+    assign section_padding = 'mt0 pb0'
+  endif
+
+-%}
+
+{% capture product_gallery_config %}{
+  "thumbPosition": "bottom",
+  "mainSlider": {% if product.images.size <= 1 %}false{% else %}true{% endif %},
+  "thumbSlider": {% if product.images.size >= 4 %}true{% else %}false{% endif %},
+  "productId": {{ product.id | json }},
+  "thumbsShown": 4,
+  "clickToEnlarge": {{ click_to_enlarge | json }},
+  "isQuick": false
+}{% endcapture %}
+
+{% comment %} Product Header Template {% endcomment %}
+<section
+  class="section-product-header product__section--main product-header-{{ section.id }} global__section {{ section_padding }}"
+  data-section-id="{{ section.id }}"
+  data-section-type="product-header"
+  data-section-loaded="false"
+  data-product-id="{{ product.id }}"
+  data-section-id="{{ section.id }}"
+  data-url="{{ product.url }}"
+  data-asset-url="{{ 'section-product.js' | asset_url }}"
+  data-initial-variant="{{ current_variant.featured_media.id }}"
+  data-launch-date="{{ launch_timestamp }}"
+  {% unless coming_soon %}style="display: none;"{% endunless %}>
+
+  {% render 'product-json', product: product %}
+
+  <div class="grid__wrapper edge">
+    <article class="{{ text_width }} pt10 sm-pt0 pl4 sm-pl3 pr3 pb8">
+      <div class="sticky--content">
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when 'product_coming_soon' -%}
+              {%- if coming_soon -%}
+                <div class="product__section-countdown span-12 auto v-start a-center px2 grid__wrapper edge no-js-hidden" data-product-countdown>
+                  <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center">
+                    <p class="collection-countdown__time h1" data-launch-days>00</p>
+                    <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.days' | t }}</p>
+                    <span class="collection-countdown__colon-divider h1">:</span>
+                  </div>
+                  <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center">
+                    <p class="collection-countdown__time h1" data-launch-hours>00</p>
+                    <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.hours' | t }}</p>
+                    <span class="collection-countdown__colon-divider h1">:</span>
+                  </div>
+                  <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center">
+                    <p class="collection-countdown__time h1" data-launch-mins>00</p>
+                    <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.mins' | t }}</p>
+                    <span class="collection-countdown__colon-divider h1">:</span>
+                  </div>
+                  <div class="collection-countdown__time--wrapper span-3 dv-span-3 auto py6 relative a-center">
+                    <p class="collection-countdown__time h1" data-launch-secs>00</p>
+                    <p class="collection-countdown__time-label mb0">{{ 'general.sections.countdown.secs' | t }}</p>
+                  </div>
+                </div>
+              {%- endif -%}
+            {%- when 'product_title' -%}
+              {% if icon_type != blank and block.settings.product_status %}
+                <p class="product-header__status icon-type--{{ icon_type }} pt2 ml4 mb1" {{ block.shopify_attributes }}>
+                  {{ icon_text }}
+                </p>
+              {% endif %}
+              <h1 class="product-header__title h2 pt0 ml4 mb2" {{ block.shopify_attributes }}>
+                {{ product.title }}
+              </h1>
+            {%- when 'product_description' -%}
+              {%- liquid
+
+                if product.description contains '[#' and block.settings.description_truncate
+                  assign description = product.description | split: '[#' | first
+                  assign description = description | strip_html | truncatewords: 40
+                elsif block.settings.description_truncate
+                  assign description = product.description | strip_html | truncatewords: 40
+                else
+                  assign description = product.description
+                endif
+
+              -%}
+              {%- if product.description != blank -%}
+                <div class="product-header__description rte pt2 ml4 mb2" {{ block.shopify_attributes }}>
+                  {{ description }}
+                </div>
+              {%- endif -%}
+            {%- when 'product_button' -%}
+              <button class="product-header__cta-button button btn-outlined mt6 ml4 js-notify-form-trigger" type="button" name="button" {{ block.shopify_attributes }}>
+                {{ call_to_action }}
+              </button>
+
+              <div class="product-form__notify-form js-notify-form ml4 mb4">
+                {%- render 'notify-form', product: product, customer: customer -%}
+              </div>
+            {%- when 'product_popup' -%}
+              <div class="product-header__popup pt2 mb2 ml4" {{ block.shopify_attributes }}>
+                {% if block.settings.popup_label != blank and block.settings.popup_metafield_content != blank or block.settings.page != blank %}
+                  <button class="btn-as-link underline js-modal-open" type="button" name="button" data-wau-modal-target="product-modal--{{ forloop.index }}" {{ block.shopify_attributes }}>
+                    {{ block.settings.popup_label }}
+                  </button>
+                  <div data-wau-modal-content="product-modal--{{ forloop.index }}" style="display: none;">
+                    {% if block.settings.page != blank %}
+                      {% assign feat_page = pages[block.settings.page] %}
+                      {{ feat_page.content }}
+                    {% else %}
+                      <div class="rte">
+                        {{ block.settings.popup_metafield_content }}
+                      </div><!-- /.rte -->
+                    {% endif %}
+                  </div>
+                {% endif %}
+              </div>
+            {%- when 'product_metafield' -%}
+              <div class="product-header__metafield-text rte pt2 mb2 ml4" {{ block.shopify_attributes }}>
+               {{ block.settings.text }}
+              </div>
+            {%- when '@app' -%}
+              <div class="product-header__app pt2 mb2 ml4" {{ block.shopify_attributes }}>
+                {% render block %}
+              </div>
+          {%- endcase -%}
+        {%- endfor -%}
+
+        {%- if accordion_active -%}
+          {% capture accordion %}
+            <div class="product-header__accordions rte accordion__active mt6 mb2 ml4 border-bottom">
+               {% assign unique_id = section.id %}
+               <div class="js-accordion c-accordion c-accordion--product c-accordion--{{ unique_id }}" id="c-accordion--{{ unique_id }}" {% if section.settings.allow_multiple %}data-accordion-allow-multiple{% endif %}>
+                {% for block in section.blocks %}
+                  {% if block.type == 'accordion_content' %}
+
+                    {%- liquid
+
+                      assign accordion_content_class = 'c-accordion__panel--'
+                      assign accordion_content_id = accordion_content_class | append: unique_id | append: '-' | append: forloop.index
+                      assign accordion_heading = 'foo'
+                      assign accordion_content = 'bar'
+                      assign page = blank
+                      assign defaultOpen = block.settings.default_open_accordion
+
+                      assign accordion_heading = block.settings.title
+                      if block.settings.page != blank
+                        assign accordion_content = block.settings.page.content
+                      else
+                        assign accordion_content = block.settings.text
+                      endif
+
+                    -%}
+                    <button class="js-accordion-header c-accordion__header m0 btn-as-link {% if defaultOpen %}js-accordion-is-open{% endif %}"
+                        {% if defaultOpen %}
+                          aria-expanded="true"
+                        {% else %}
+                          aria -expanded="false"
+                        {% endif %}
+                        aria-controls="{{ accordion_content_id }}" data-toggle="accordion"
+                        {{ block.shopify_attributes }} >
+                        {{ accordion_heading }}
+                        <span class="dropdown-arrow">
+                          {% render 'snip-icons',
+                             wrapper: '.product-header__accordions .c-accordion__header',
+                             type: 'apollo',
+                             icon: 'plus',
+                             classes: 'c-accordion__header--plus',
+                             size: '11px',
+                             fill: 'var(--text-color)',
+                             hover: 'var(--text-color)' %}
+                           {% render 'snip-icons',
+                              wrapper: '.product-header__accordions .c-accordion__header',
+                              type: 'apollo',
+                              icon: 'minus',
+                              classes: 'c-accordion__header--minus display-none',
+                              size: '11px',
+                              fill: 'var(--text-color)',
+                              hover: 'var(--text-color)' %}
+                        </span>
+                    </button>
+                    <div class="c-accordion__panel mb0 {% if defaultOpen %}is-active{% endif %} {{ accordion_content_id }} rte" id="{{ accordion_content_id }}" data-parent="#c-accordion--{{ unique_id }}">
+                      <div class="c-accordion__inner mt2 mb4">
+                       {{ accordion_content }}
+                      </div>
+                    </div>
+                  {% endif %}
+                {% endfor %}
+               </div>
+            </div>
+          {% endcapture %}
+
+          {{ accordion }}
+        {%- endif -%}
+      </div>
+    </article>
+    <article id="product-photos" data-product-gallery
+      class="product__section-images product-photos {{ gallery_width }} v-start carousel-container js-product-gallery single_image--{{ is_single_image }}"
+      data-product-single-media-group data-gallery-config='{{ product_gallery_config }}'>
+        {% render 'product-image-gallery',
+          product: product,
+          thumbnail_position: "bottom",
+          click_to_enlarge: click_to_enlarge,
+          enable_video_looping: false,
+          media_type: 'images' %}
+    </article>
+  </div>
+  <style>
+    .product-header__status { text-transform: uppercase; }
+    .product-header__cta-button { margin-bottom: var(--space-6) !important; }
+    @media (max-width: 767px) {
+      .section-product-header .product__section-images { grid-row: 1; }
+    }
+  </style>
+</section>
+{% schema %}
+{
+  "name": "Coming soon",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Section is shown on coming soon products only."
+    },
+    {
+      "type": "header",
+      "content": "Image Gallery"
+    },
+    {
+      "type": "checkbox",
+      "id": "click_to_enlarge",
+      "label": "Enable click to enlarge",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "gallery_size",
+      "label": "Gallery size",
+      "options": [
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        }
+      ],
+      "default": "large"
+    },
+    {
+      "type": "select",
+      "id": "section_padding",
+      "label": "Section spacing",
+      "options": [
+        {
+          "value": "top",
+          "label": "Top"
+        },
+        {
+          "value": "bottom",
+          "label": "Bottom"
+        },
+        {
+          "value": "both",
+          "label": "Both"
+        },
+        {
+          "value": "none",
+          "label": "None"
+        }
+      ],
+      "default": "bottom"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product_coming_soon",
+      "name": "Countdown",
+      "limit": 1,
+      "settings": [
+        {
+         "type": "paragraph",
+         "content": "Use metafield 'my_fields.launch', with a launch date in the future. Read our coming soon guide to [learn more](https://www.weareunderground.com/blogs/drop-support/drop-coming-soon-feature)."
+        }
+      ]
+    },
+    {
+      "type": "product_title",
+      "name": "Title",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "product_status",
+          "label": "Show launch date",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "product_description",
+      "name": "Description",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "description_truncate",
+          "label": "Shorten description",
+          "default": true,
+          "info": "Show only the first few sentences of the product description."
+        }
+      ]
+    },
+    {
+      "type": "product_button",
+      "name": "Notify button",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "product_popup",
+      "name": "Text popup",
+      "limit": 3,
+      "settings": [
+        {
+          "type": "text",
+          "id": "popup_label",
+          "label": "Popup label",
+          "default": "Popup label"
+        },
+        {
+          "type": "richtext",
+          "id": "popup_metafield_content",
+          "label": "Popup content",
+          "default": "<p>Add content which will be shown in a popup across all product pages</p>"
+        },
+        {
+          "type": "page",
+          "id": "page",
+          "label": "Or Show content from a page"
+        }
+      ]
+    },
+    {
+      "type": "product_metafield",
+      "name": "Text",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text"
+        }
+      ]
+    },
+    {
+      "type": "accordion_content",
+      "name": "Accordion content",
+      "limit": 5,
+      "settings": [
+        {
+          "type": "page",
+          "id": "page",
+          "label": "Page content",
+          "info": "Select content from an exisitng page which will override any other accordion content entered"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "Heading",
+          "default": "Accordion title"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Content",
+          "default": "<p>Add content shared across all products or assign a metafield for unique product content</p>",
+          "info": "Add content shared across all products or assign a metafield for unique product content"
+        },
+        {
+          "type": "checkbox",
+          "id": "default_open_accordion",
+          "label": "Open by default",
+          "info": "Accordion item is open by default when the page loads",
+          "default": false
+        }
+      ]
+    },
+    {
+      "type": "@app"
+    }
+  ]
+}
+{% endschema %}
